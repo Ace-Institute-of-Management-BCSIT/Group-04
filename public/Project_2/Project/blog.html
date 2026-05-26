@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SkillSwap - Blog</title>
+  <link rel="stylesheet" href="blog.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <div class="logo-icon"><i class="fa-solid fa-sparkles"></i></div>
+        <span class="logo-text">SkillSwap</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#" class="nav-link">Home</a>
+        <a href="#" class="nav-link">Find Skills</a>
+        <a href="#" class="nav-link">Messages</a>
+        <a href="#" class="nav-link active">Blog</a>
+        <a href="#" class="nav-link">About</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn"><i class="fa-regular fa-sun"></i></button>
+        <button class="icon-btn"><i class="fa-regular fa-user"></i></button>
+        <span class="profile-text">Profile</span>
+        <button class="btn-join">Join Now</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE HEADER -->
+  <div class="blog-header">
+    <p class="blog-label">SkillSwap Blog</p>
+    <p class="blog-sub">Success stories, learning tips, and featured community members</p>
+  </div>
+
+  <!-- FEATURED ARTICLE -->
+  <section class="featured-section">
+    <div class="featured-card">
+      <div class="featured-img">
+        <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80" alt="Featured"/>
+      </div>
+      <div class="featured-content">
+        <span class="tag tag-green">Success Story</span>
+        <h2 class="featured-title">From Zero to Hero: How I Learned Web Development Through Skill Exchange</h2>
+        <p class="featured-desc">My journey from complete beginner to landing my first developer job, all thanks to the SkillSwap community.</p>
+        <div class="featured-author">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus" alt="Marcus"/>
+          <div>
+            <strong>Marcus Johnson</strong>
+            <span><i class="fa-regular fa-calendar"></i> October 5, 2025 &nbsp; <i class="fa-regular fa-clock"></i> 5 min read</span>
+          </div>
+        </div>
+        <button class="btn-read">Read Full Story &nbsp;<i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARTICLE GRID -->
+  <section class="articles-section">
+
+    <div class="articles-grid" id="articles-grid">
+
+      <!-- Card 1 -->
+      <div class="article-card">
+        <div class="article-img">
+          <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&q=80" alt="Article"/>
+        </div>
+        <div class="article-body">
+          <span class="tag tag-green">Learning Tips</span>
+          <h3>5 Tips for Effective Skill Exchanges</h3>
+          <p>Learn how to make the most of your skill exchange sessions with these proven strategies.</p>
+          <div class="article-author">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" alt="Sarah"/>
+            <div>
+              <strong>Sarah Chen</strong>
+              <span><i class="fa-regular fa-calendar"></i> October 3 &nbsp;·&nbsp; 4 min read</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-read-more">Read More</button>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="article-card">
+        <div class="article-img">
+          <img src="https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&q=80" alt="Article"/>
+        </div>
+        <div class="article-body">
+          <span class="tag tag-green">Featured Member</span>
+          <h3>Meet Emily: Teaching Yoga, Learning Video Editing</h3>
+          <p>How one member combined her passion for wellness with her desire to create online content.</p>
+          <div class="article-author">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=SkillSwap" alt="Team"/>
+            <div>
+              <strong>SkillSwap Team</strong>
+              <span><i class="fa-regular fa-calendar"></i> September 28 &nbsp;·&nbsp; 6 min read</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-read-more">Read More</button>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="article-card">
+        <div class="article-img">
+          <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80" alt="Article"/>
+        </div>
+        <div class="article-body">
+          <span class="tag tag-green">Learning Tips</span>
+          <h3>The Science of Skill Exchange: Why Teaching Others Helps You Learn</h3>
+          <p>Research shows that teaching is one of the most effective ways to master a subject. Here's why.</p>
+          <div class="article-author">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aisha" alt="Aisha"/>
+            <div>
+              <strong>Dr. Aisha Patel</strong>
+              <span><i class="fa-regular fa-calendar"></i> September 25 &nbsp;·&nbsp; 7 min read</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-read-more">Read More</button>
+      </div>
+
+      <!-- Card 4 (hidden, loads on button click) -->
+      <div class="article-card extra" style="display:none;">
+        <div class="article-img">
+          <img src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=600&q=80" alt="Article"/>
+        </div>
+        <div class="article-body">
+          <span class="tag tag-green">Success Story</span>
+          <h3>How David Swapped Korean Language for Graphic Design</h3>
+          <p>David shares how a simple swap opened doors to a freelance career he never expected.</p>
+          <div class="article-author">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=David" alt="David"/>
+            <div>
+              <strong>David Kim</strong>
+              <span><i class="fa-regular fa-calendar"></i> September 20 &nbsp;·&nbsp; 5 min read</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-read-more">Read More</button>
+      </div>
+
+      <!-- Card 5 (hidden) -->
+      <div class="article-card extra" style="display:none;">
+        <div class="article-img">
+          <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&q=80" alt="Article"/>
+        </div>
+        <div class="article-body">
+          <span class="tag tag-green">Community</span>
+          <h3>Building Genuine Connections Through Knowledge Sharing</h3>
+          <p>Why the friendships formed through skill exchange often last a lifetime.</p>
+          <div class="article-author">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Emily" alt="Emily"/>
+            <div>
+              <strong>Emily Rodriguez</strong>
+              <span><i class="fa-regular fa-calendar"></i> September 15 &nbsp;·&nbsp; 4 min read</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-read-more">Read More</button>
+      </div>
+
+      <!-- Card 6 (hidden) -->
+      <div class="article-card extra" style="display:none;">
+        <div class="article-img">
+          <img src="https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=600&q=80" alt="Article"/>
+        </div>
+        <div class="article-body">
+          <span class="tag tag-green">Learning Tips</span>
+          <h3>Setting Clear Goals Before Your First Skill Session</h3>
+          <p>A practical guide to arriving prepared and getting the most value out of every exchange.</p>
+          <div class="article-author">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jake" alt="Jake"/>
+            <div>
+              <strong>Jake Morrison</strong>
+              <span><i class="fa-regular fa-calendar"></i> September 10 &nbsp;·&nbsp; 3 min read</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-read-more">Read More</button>
+      </div>
+
+    </div>
+
+    <!-- Load More -->
+    <div class="load-more-wrap">
+      <button class="btn-load-more" id="load-more-btn" onclick="loadMore()">Load More Articles</button>
+    </div>
+
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-icon">SS</div>
+          <span>SkillSwap</span>
+        </div>
+        <p>Connecting learners and teachers in a community-powered platform.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="#">How It Works</a>
+        <a href="#">Safety Guidelines</a>
+        <a href="#">Success Stories</a>
+        <a href="#">Community Rules</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="#">Blog</a>
+        <a href="#">Help Center</a>
+        <a href="#">FAQ</a>
+        <a href="#">Contact Us</a>
+      </div>
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <div class="social-icons">
+          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2025 SkillSwap. All rights reserved. Built with community ❤️
+    </div>
+  </footer>
+
+  <script src="blog.js"></script>
+</body>
+</html>
