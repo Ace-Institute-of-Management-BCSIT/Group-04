@@ -1,221 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SkillSwap</title>
-  <link rel="stylesheet" href="index.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSwap - Learn. Teach. Trade. Grow.</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-  <header class="navbar">
-    <div class="nav-inner">
-      <div class="nav-logo">
-        <div class="logo-icon"><i class="fa-solid fa-star-four-points"></i></div>
-        <span class="logo-text">SkillSwap</span>
-      </div>
-
-      <nav class="nav-links">
-        <a href="index.html" class="nav-link active">Home</a>
-        <a href="#" class="nav-link">Find Skills</a>
-        <a href="#" class="nav-link">Messages</a>
-        <a href="#" class="nav-link">Blog</a>
-        <a href="about.html" class="nav-link">About</a>
-      </nav>
-
-      <div class="nav-actions">
-        <button class="btn-login">Log In</button>
-        <button class="btn-signup">Sign Up</button>
-      </div>
-    </div>
-  </header>
-
-
-  <section class="hero">
-    <div class="hero-content">
-     <div class="badge">
-  <i class="fa-solid fa-bolt"></i> Community Skill Marketplace
-</div>
-      <h1 class="hero-title">
-  Find skilled professionals.<br />Offer your <span>expertise</span>.
-</h1>
-      <p class="hero-desc">
-  Connect with skilled professionals in your community. Book services, make secure payments, and grow through trusted skill-sharing and collaboration.
-</p>
-
-      <div class="search-container">
-        <div class="search-input-wrapper">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" placeholder="Search skills (e.g. React, UX Design...)" />
-        </div>
-        <button class="btn-search">Explore</button>
-      </div>
-    </div>
-
-    <div class="hero-visual">
-      <div class="match-card">
-        <div class="card-top">
-          <div class="user-profile">
-            <div class="avatar">AM</div>
-            <div class="user-info">
-              <h4>Alex Morgan</h4>
-              <p>Product Designer</p>
+    <header class="header glass">
+        <div class="container header-content">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="14" fill="currentColor" opacity="0.2"/>
+                    <path d="M12 10l8 6-8 6V10z" fill="currentColor"/>
+                </svg>
+                <span>SkillSwap</span>
             </div>
-          </div>
-          <span class="status-badge">Available</span>
+            <nav class="nav">
+                <a href="#" class="nav-link active" data-page="home">Home</a>
+                <a href="#" class="nav-link" data-page="search">Find Skills</a>
+                <a href="#" class="nav-link" data-page="about">About</a>
+                <a href="#" class="nav-link" data-page="blog">Blog</a>
+            </nav>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                <svg class="sun-icon" width="20" height="20"><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2"/><line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2"/><line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2"/><line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2"/></svg>
+                <svg class="moon-icon" width="20" height="20"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div id="home" class="page active">
+            <section class="hero">
+                <div class="animated-gradient"></div>
+                <div class="container hero-content">
+                    <div class="hero-text">
+                        <div class="badge gradient-primary">
+                            <span>✨ Community-Powered Learning</span>
+                        </div>
+                        <h1 class="gradient-text">Learn. Teach. Trade. Grow.</h1>
+                        <p class="hero-description">Join a thriving community where skills are shared freely. Connect with passionate teachers and eager learners to exchange knowledge and grow together.</p>
+                        <div class="button-group">
+                            <button class="btn btn-primary" data-page="search">Get Started</button>
+                            <button class="btn btn-outline" data-page="about">Learn More</button>
+                        </div>
+                        <div class="stats">
+                            <div class="stat"><div class="stat-number gradient-text">10K+</div><div class="stat-label">Members</div></div>
+                            <div class="stat"><div class="stat-number gradient-text">500+</div><div class="stat-label">Skills</div></div>
+                            <div class="stat"><div class="stat-number gradient-text">98%</div><div class="stat-label">Satisfied</div></div>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop" alt="People learning together">
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2 class="gradient-text">How SkillSwap Works</h2>
+                        <p>Our platform makes it simple to connect, learn, and share your expertise with others in the community.</p>
+                    </div>
+                    <div class="grid-4">
+                        <div class="card hover-lift">
+                            <div class="card-icon gradient-primary">👥</div>
+                            <h3>Create Profile</h3>
+                            <p>Sign up and list the skills you can teach and what you'd like to learn.</p>
+                        </div>
+                        <div class="card hover-lift">
+                            <div class="card-icon gradient-secondary">🔍</div>
+                            <h3>Find Matches</h3>
+                            <p>Search for teachers or learners by skill, location, or availability.</p>
+                        </div>
+                        <div class="card hover-lift">
+                            <div class="card-icon gradient-primary">💬</div>
+                            <h3>Connect</h3>
+                            <p>Message potential matches and arrange skill exchanges that work for both.</p>
+                        </div>
+                        <div class="card hover-lift">
+                            <div class="card-icon gradient-accent">⭐</div>
+                            <h3>Learn & Review</h3>
+                            <p>Share your knowledge, learn new skills, and build trust through reviews.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cta-section">
+                <div class="gradient-primary cta-overlay"></div>
+                <div class="container cta-content">
+                    <h2>❤️ Ready to Start Your Learning Journey?</h2>
+                    <p>Join thousands of members who are already sharing skills and growing together.</p>
+                    <div class="button-group">
+                        <button class="btn btn-secondary" data-page="search">Browse Skills</button>
+                        <button class="btn btn-outline-white">Create Free Account</button>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <div class="exchange-box">
-        <div class="exchange-row">
-  <span class="label">Service Offered</span>
-  <span class="value give">Figma UI/UX</span>
-</div>
-
-<div class="exchange-row">
-  <span class="label">Service Fee</span>
-  <span class="value take">Rs. 2,300 / Session</span>
-</div>
+        <div id="search" class="page">
+            <div class="page-header">
+                <div class="container">
+                    <h1 class="gradient-text">Find Your Perfect Match</h1>
+                    <p>Discover teachers and learners in our community</p>
+                </div>
+            </div>
+            <div class="container">
+                <div class="card search-filters">
+                    <div class="filter-grid">
+                        <input type="text" id="searchInput" placeholder="Search by name or skill..." class="search-input">
+                        <select id="locationFilter" class="filter-select">
+                            <option value="all">All Locations</option>
+                            <option value="San Francisco">San Francisco</option>
+                            <option value="New York">New York</option>
+                            <option value="Austin">Austin</option>
+                            <option value="Seattle">Seattle</option>
+                            <option value="Boston">Boston</option>
+                            <option value="Denver">Denver</option>
+                        </select>
+                        <select id="availabilityFilter" class="filter-select">
+                            <option value="all">All Types</option>
+                            <option value="Virtual">Virtual</option>
+                            <option value="In-Person">In-Person</option>
+                            <option value="Both">Both</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="resultsCount" class="results-count">Found 6 matches</div>
+                <div id="userCards" class="grid-3"></div>
+            </div>
         </div>
 
-        <div class="card-bottom">
-          <span class="meta-text">45 min session</span>
-          <button class="btn-connect">
-            <i class="fa-regular fa-paper-plane"></i> Connect
-          </button>
+        <div id="about" class="page">
+            <div class="page-header">
+                <div class="container">
+                    <h1 class="gradient-text">Our Mission</h1>
+                    <p class="large-text">We believe that everyone has valuable knowledge to share and something new to learn. SkillSwap is breaking down barriers to education by creating a community where skills are currency and learning is free.</p>
+                </div>
+            </div>
+            <div class="container">
+                <div class="content-section">
+                    <h2>Our Story</h2>
+                    <p>SkillSwap was founded in 2024 by a group of lifelong learners who were frustrated with the high cost of education and the untapped potential in their communities. They realized that in any neighborhood, there are people with diverse skills—from coding to cooking, from languages to music—who would love to share their knowledge.</p>
+                    <p>The traditional education model often creates barriers: high tuition costs, rigid schedules, and limited access. We saw an opportunity to create something different—a platform where learning happens through mutual exchange, where teaching and learning go hand in hand, and where community replaces currency.</p>
+                </div>
+                
+                <div class="section-header">
+                    <h2 class="gradient-text">Our Core Values</h2>
+                </div>
+                
+                <div class="grid-2">
+                    <div class="card hover-lift">
+                        <div class="card-icon gradient-primary">❤️</div>
+                        <h3>Community First</h3>
+                        <p>We believe in the power of community. Every member brings unique value, and together we're stronger.</p>
+                    </div>
+                    <div class="card hover-lift">
+                        <div class="card-icon gradient-secondary">🌍</div>
+                        <h3>Free Access</h3>
+                        <p>Education should be accessible to everyone. By removing financial barriers and embracing skill exchange, we make learning available to all.</p>
+                    </div>
+                    <div class="card hover-lift">
+                        <div class="card-icon gradient-primary">🎯</div>
+                        <h3>Skill Diversity</h3>
+                        <p>All skills are valuable. Whether it's coding, cooking, or creative arts, every form of knowledge enriches our community.</p>
+                    </div>
+                    <div class="card hover-lift">
+                        <div class="card-icon gradient-accent">📈</div>
+                        <h3>Mutual Growth</h3>
+                        <p>Teaching is learning. When you share your knowledge, you deepen your own understanding. We all grow together.</p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </section>
 
-
-  <section class="discover">
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">Available Services</h2>
-        <p class="section-subtitle">Discover community requests updated live</p>
-      </div>
-      <div class="filter-group">
-        <button class="btn-filter">All</button>
-        <button class="btn-filter">Development</button>
-        <button class="btn-filter">Design</button>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="skill-card">
-        <div>
-          <div class="card-head">
-            <span class="cat-tag dev">Development</span>
-            <div class="rating"><i class="fa-solid fa-star"></i> 4.9</div>
-          </div>
-          <div class="card-body">
-            <h3>React Architecture</h3>
-            <p>Master clean state management and optimization hooks setup.</p>
-          </div>
+        <div id="blog" class="page">
+            <div class="page-header">
+                <div class="container">
+                    <h1 class="gradient-text">SkillSwap Blog</h1>
+                    <p>Success stories, learning tips, and featured community members</p>
+                </div>
+            </div>
+            <div class="container">
+                <div id="blogPosts" class="grid-3"></div>
+            </div>
         </div>
-        <div class="card-foot">
-          <div class="foot-user">
-            <div class="avatar-sm">JD</div>
-            <span>John D.</span>
-          </div>
-          <p class="wants-tag">Price: <span>Rs. 1,500 / Session</span></p>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="footer-section">
+                <div class="logo"><span>SkillSwap</span></div>
+                <p>Connecting learners and teachers worldwide through the power of skill exchange.</p>
+            </div>
         </div>
-      </div>
-
-      <div class="skill-card">
-        <div>
-          <div class="card-head">
-            <span class="cat-tag design">Design</span>
-            <div class="rating"><i class="fa-solid fa-star"></i> 5.0</div>
-          </div>
-          <div class="card-body">
-            <h3>Typography Systems</h3>
-            <p>Creating functional text scaling frameworks across responsive viewpoints.</p>
-          </div>
+        <div class="footer-bottom">
+            <div class="container"><p>&copy; 2024 SkillSwap. All rights reserved.</p></div>
         </div>
-        <div class="card-foot">
-          <div class="foot-user">
-            <div class="avatar-sm">SK</div>
-            <span>Sarah K.</span>
-          </div>
-          <p class="wants-tag">Price: <span>Rs. 2,500 / Hour</span></p>
-        </div>
-      </div>
+    </footer>
 
-      <div class="skill-card">
-        <div>
-          <div class="card-head">
-            <span class="cat-tag marketing">Marketing</span>
-            <div class="rating"><i class="fa-solid fa-star"></i> 4.7</div>
-          </div>
-          <div class="card-body">
-            <h3>SEO Funnel Optimization</h3>
-            <p>Organic lead captures across high performance structural landing pages.</p>
-          </div>
-        </div>
-        <div class="card-foot">
-          <div class="foot-user">
-            <div class="avatar-sm">TH</div>
-            <span>Tom H.</span>
-          </div>
-          <p class="wants-tag">Price: <span>Rs. 1,200 / Project</span></p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-
-  <section class="cta-section">
-    <div class="cta-box">
-      <div class="cta-icon"><i class="fa-solid fa-heart"></i></div>
-      <p class="cta-small">Ready to Find or Offer Services?</p>
-     <h2 class="cta-title">
-  Join a trusted platform where skilled individuals offer services, connect with clients, and earn through their expertise.
-</h2>
-      <div class="cta-buttons">
-        <button class="btn-cta-dark">Browse Skills</button>
-        <button class="btn-cta-outline">Create Free Account</button>
-      </div>
-    </div>
-  </section>
-
-
-  <footer class="footer">
-    <div class="footer-inner">
-
-      <div class="footer-brand">
-        <div class="footer-logo">
-          <div class="footer-logo-icon">SS</div>
-          <span>SkillSwap</span>
-        </div>
-   <p>Connecting service providers and clients through a trusted skill-sharing marketplace.</p>
-      </div>
-
-      <div class="footer-col">
-        <h4>Platform</h4>
-        <a href="#">How It Works</a>
-        <a href="#">Safety Guidelines</a>
-      </div>
-
-      <div class="footer-col">
-        <h4>Resources</h4>
-        <a href="#">Blog</a>
-        <a href="#">Help Center</a>
-      </div>
-
-      <div class="footer-col">
-        <h4>Connect</h4>
-        <div class="social-icons">
-          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
-          <a href="#"><i class="fa-brands fa-instagram"></i></a>
-        </div>
-      </div>
-
-    </div>
-  </footer>
-
+    <script src="script.js"></script>
 </body>
 </html>
