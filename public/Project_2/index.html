@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SkillSwap</title>
+  <link rel="stylesheet" href="index.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <div class="logo-icon"><i class="fa-solid fa-star-four-points"></i></div>
+        <span class="logo-text">SkillSwap</span>
+      </div>
+
+      <nav class="nav-links">
+        <a href="#" class="nav-link active">Home</a>
+        <a href="#" class="nav-link">Find Skills</a>
+        <a href="#" class="nav-link">Messages</a>
+        <a href="#" class="nav-link">Blog</a>
+        <a href="#" class="nav-link">About</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn-login">Log In</button>
+        <button class="btn-signup">Sign Up</button>
+      </div>
+    </div>
+  </header>
+
+
+  <section class="hero">
+    <div class="hero-content">
+      <div class="badge">
+        <i class="fa-solid fa-bolt"></i> Peer-to-Peer Skill Exchange
+      </div>
+      <h1 class="hero-title">
+        Learn new skills.<br />Offer your <span>expertise</span>.
+      </h1>
+      <p class="hero-desc">
+        Swap knowledge directly with community members. No money exchanges hands—just trade what you know for what you want to learn.
+      </p>
+
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Search skills (e.g. React, UX Design...)" />
+        </div>
+        <button class="btn-search">Explore</button>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="match-card">
+        <div class="card-top">
+          <div class="user-profile">
+            <div class="avatar">AM</div>
+            <div class="user-info">
+              <h4>Alex Morgan</h4>
+              <p>Product Designer</p>
+            </div>
+          </div>
+          <span class="status-badge">Available</span>
+        </div>
+
+        <div class="exchange-box">
+          <div class="exchange-row">
+            <span class="label">Can Teach</span>
+            <span class="value give">Figma UI/UX</span>
+          </div>
+          <div class="exchange-row">
+            <span class="label">Wants to Learn</span>
+            <span class="value take">React Hooks</span>
+          </div>
+        </div>
+
+        <div class="card-bottom">
+          <span class="meta-text">45 min session</span>
+          <button class="btn-connect">
+            <i class="fa-regular fa-paper-plane"></i> Connect
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="discover">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Active Skill Exchanges</h2>
+        <p class="section-subtitle">Discover community requests updated live</p>
+      </div>
+      <div class="filter-group">
+        <button class="btn-filter">All</button>
+        <button class="btn-filter">Development</button>
+        <button class="btn-filter">Design</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="skill-card">
+        <div>
+          <div class="card-head">
+            <span class="cat-tag dev">Development</span>
+            <div class="rating"><i class="fa-solid fa-star"></i> 4.9</div>
+          </div>
+          <div class="card-body">
+            <h3>React Architecture</h3>
+            <p>Master clean state management and optimization hooks setup.</p>
+          </div>
+        </div>
+        <div class="card-foot">
+          <div class="foot-user">
+            <div class="avatar-sm">JD</div>
+            <span>John D.</span>
+          </div>
+          <p class="wants-tag">Wants: <span>Figma UI</span></p>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div>
+          <div class="card-head">
+            <span class="cat-tag design">Design</span>
+            <div class="rating"><i class="fa-solid fa-star"></i> 5.0</div>
+          </div>
+          <div class="card-body">
+            <h3>Typography Systems</h3>
+            <p>Creating functional text scaling frameworks across responsive viewpoints.</p>
+          </div>
+        </div>
+        <div class="card-foot">
+          <div class="foot-user">
+            <div class="avatar-sm">SK</div>
+            <span>Sarah K.</span>
+          </div>
+          <p class="wants-tag">Wants: <span>SEO Growth</span></p>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div>
+          <div class="card-head">
+            <span class="cat-tag marketing">Marketing</span>
+            <div class="rating"><i class="fa-solid fa-star"></i> 4.7</div>
+          </div>
+          <div class="card-body">
+            <h3>SEO Funnel Optimization</h3>
+            <p>Organic lead captures across high performance structural landing pages.</p>
+          </div>
+        </div>
+        <div class="card-foot">
+          <div class="foot-user">
+            <div class="avatar-sm">TH</div>
+            <span>Tom H.</span>
+          </div>
+          <p class="wants-tag">Wants: <span>React JS</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="cta-section">
+    <div class="cta-box">
+      <div class="cta-icon"><i class="fa-solid fa-heart"></i></div>
+      <p class="cta-small">Ready to Start Your Learning Journey?</p>
+      <h2 class="cta-title">Join thousands of members who are already sharing skills and growing together.</h2>
+      <div class="cta-buttons">
+        <button class="btn-cta-dark">Browse Skills</button>
+        <button class="btn-cta-outline">Create Free Account</button>
+      </div>
+    </div>
+  </section>
+
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-icon">SS</div>
+          <span>SkillSwap</span>
+        </div>
+        <p>Connecting learners and teachers in a community-powered platform.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="#">How It Works</a>
+        <a href="#">Safety Guidelines</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="#">Blog</a>
+        <a href="#">Help Center</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <div class="social-icons">
+          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+</body>
+</html>
