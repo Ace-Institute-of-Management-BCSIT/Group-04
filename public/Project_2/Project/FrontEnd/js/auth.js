@@ -1,5 +1,5 @@
 // ==================== DEVELOPMENT MODE ====================
-// Set this to false when you connect the real backend
+// Change to false when you want real login
 const DEV_MODE = true;   
 
 const API_BASE = 'http://localhost:5000/api';
@@ -36,6 +36,8 @@ async function loadNavbar() {
                     <a href="sessions.html" class="nav-link">Sessions</a>
                     <a href="chat.html" class="nav-link">Messages</a>
                     <a href="profile.html" class="nav-link">Profile</a>
+                    <a href="about.html" class="nav-link">About</a>
+                    <a href="blog.html" class="nav-link">Blog</a>
                 </nav>
                 <div style="display:flex; gap:12px; align-items:center;">
                     <button onclick="toggleTheme()" class="theme-toggle" id="themeToggle">🌙</button>
@@ -47,10 +49,10 @@ async function loadNavbar() {
             </div>
         </header>
     `;
-    document.getElementById('navbar-placeholder').innerHTML = html;
+    const placeholder = document.getElementById('navbar-placeholder');
+    if (placeholder) placeholder.innerHTML = html;
 }
 
-// Simple theme toggle
 function toggleTheme() {
     document.documentElement.classList.toggle('dark');
     localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
