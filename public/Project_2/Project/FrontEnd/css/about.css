@@ -1,0 +1,52 @@
+.page-header {
+    padding: 80px 0 60px;
+    text-align: center;
+}
+
+.large-text {
+    font-size: 1.25rem;
+    max-width: 800px;
+    margin: 0 auto 60px;
+    color: var(--muted-foreground);
+    line-height: 1.7;
+}
+
+.content-section {
+    margin: 48px 0;
+}
+
+.content-section p {
+    color: var(--muted-foreground);
+    margin-bottom: 24px;
+    font-size: 1.05rem;
+}
+
+.section-header {
+    text-align: center;
+    margin: 60px 0 40px;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    transition: all 0.3s;
+}
+
+.card-icon {
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}

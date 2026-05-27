@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSwap - User Profile</title>
+    <link rel="stylesheet" href="../css/shared.css">
+    <link rel="stylesheet" href="../css/profile.css">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <main class="main-content">
+        <div class="container">
+            <a href="find-skills.html" class="btn btn-outline" style="margin-bottom: 20px; display: inline-block;">← Back to Find Skills</a>
+
+            <div class="profile-header">
+                <div class="profile-avatar-container">
+                    <img id="profilePic" class="profile-avatar" src="../assets/default-avatar.png" alt="Profile">
+                </div>
+                <div class="profile-info">
+                    <h1 id="fullName">Loading...</h1>
+                    <p id="userLocation"></p>
+                    <p id="rating">⭐ 4.8 • 23 reviews</p>
+                </div>
+                <button onclick="startChat()" class="btn btn-primary">Message</button>
+            </div>
+
+            <div class="profile-content">
+                <div class="bio-section">
+                    <h2>About</h2>
+                    <p id="bio">Loading bio...</p>
+                </div>
+
+                <div class="skills-section">
+                    <h2>Can Teach</h2>
+                    <div id="teachSkills" class="skill-tags"></div>
+
+                    <h2>Wants to Learn</h2>
+                    <div id="learnSkills" class="skill-tags"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/user-profile.js"></script>
+</body>
+</html>

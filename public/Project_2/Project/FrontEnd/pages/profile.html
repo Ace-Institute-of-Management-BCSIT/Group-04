@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSwap - My Profile</title>
+    <link rel="stylesheet" href="../css/shared.css">
+    <link rel="stylesheet" href="../css/profile.css">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="profile-header">
+                <div class="profile-avatar-container">
+                    <img id="profilePic" class="profile-avatar" src="../assets/default-avatar.png" alt="Profile Picture">
+                    <label class="upload-label">
+                        Change Photo
+                        <input type="file" id="picUpload" accept="image/*" hidden>
+                    </label>
+                </div>
+                <div class="profile-info">
+                    <h1 id="fullName">Loading...</h1>
+                    <p id="userEmail"></p>
+                    <p id="userLocation"></p>
+                </div>
+            </div>
+
+            <form id="profileForm" class="profile-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="full_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="location" placeholder="e.g. Kathmandu, Nepal">
+                    </div>
+                    <div class="form-group">
+                        <label>Hourly Rate (₹)</label>
+                        <input type="number" id="hourly_rate" value="500">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Bio</label>
+                    <textarea id="bio" rows="5" placeholder="Tell others about yourself and your skills..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/profile.js"></script>
+</body>
+</html>

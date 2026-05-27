@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSwap - Find Skills</title>
+    <link rel="stylesheet" href="../css/shared.css">
+    <link rel="stylesheet" href="../css/find-skills.css">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div class="container">
+                <h1 class="gradient-text">Find Your Perfect Match</h1>
+                <p>Discover teachers and learners in our community</p>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div class="card search-filters">
+                <div class="filter-grid">
+                    <input type="text" id="searchInput" placeholder="Search by name or skill..." class="search-input">
+                    <select id="locationFilter" class="filter-select">
+                        <option value="">All Locations</option>
+                    </select>
+                    <select id="availabilityFilter" class="filter-select">
+                        <option value="">All Types</option>
+                        <option value="Virtual">Virtual</option>
+                        <option value="In-Person">In-Person</option>
+                        <option value="Both">Both</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="resultsCount" class="results-count">Found 0 matches</div>
+            <div id="userCards" class="grid-3"></div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="footer-section">
+                <div class="logo"><span>SkillSwap</span></div>
+                <p>Connecting learners and teachers worldwide.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container"><p>&copy; 2026 SkillSwap. All rights reserved.</p></div>
+        </div>
+    </footer>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/find-skills.js"></script>
+</body>
+</html>

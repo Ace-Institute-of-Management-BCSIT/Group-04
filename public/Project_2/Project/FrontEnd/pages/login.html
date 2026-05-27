@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSwap - Login</title>
+    <link rel="stylesheet" href="../css/shared.css">
+    <link rel="stylesheet" href="../css/login.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card glass">
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="14" fill="currentColor" opacity="0.2"/>
+                    <path d="M12 10l8 6-8 6V10z" fill="currentColor"/>
+                </svg>
+                <span>SkillSwap</span>
+            </div>
+            
+            <h1>Welcome Back</h1>
+            <p>Continue your learning journey</p>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="Email address" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+
+            <p class="switch-auth">
+                Don't have an account? <a href="signup.html">Sign up</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/login.js"></script>
+</body>
+</html>

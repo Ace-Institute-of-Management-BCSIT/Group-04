@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSwap - Sign Up</title>
+    <link rel="stylesheet" href="../css/shared.css">
+    <link rel="stylesheet" href="../css/signup.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card glass">
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="14" fill="currentColor" opacity="0.2"/>
+                    <path d="M12 10l8 6-8 6V10z" fill="currentColor"/>
+                </svg>
+                <span>SkillSwap</span>
+            </div>
+            
+            <h1>Join the Community</h1>
+            <p>Start sharing & learning skills today</p>
+
+            <form id="signupForm">
+                <div class="form-group">
+                    <input type="text" id="full_name" placeholder="Full Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="Email address" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Password (min 6 characters)" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Create Account</button>
+            </form>
+
+            <p class="switch-auth">
+                Already have an account? <a href="login.html">Login</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/signup.js"></script>
+</body>
+</html>
