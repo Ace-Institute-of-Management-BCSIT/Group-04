@@ -1,0 +1,72 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --background: #ffffff;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --primary: #10b981;
+    --secondary: #f1f5f9;
+    --muted-foreground: #64748b;
+    --border: #e2e8f0;
+}
+
+.dark {
+    --background: #030712;
+    --foreground: #f1f5f9;
+    --card: #0f172a;
+    --primary: #34d399;
+    --secondary: #1e293b;
+    --border: #334155;
+}
+
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    line-height: 1.6;
+}
+
+/* === YOUR ORIGINAL STYLES (glassmorphism, gradients, cards, etc.) === */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+.header {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    width: 95%; max-width: 1200px; z-index: 1000;
+    padding: 12px 24px; border-radius: 12px;
+    backdrop-filter: blur(12px); box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.glass { background: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.3); }
+.dark .glass { background: rgba(15,23,42,0.75); border: 1px solid rgba(255,255,255,0.1); }
+
+.logo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 1.25rem; color: var(--primary); }
+.nav { display: flex; gap: 24px; }
+.nav-link { text-decoration: none; color: var(--foreground); font-weight: 500; padding: 8px 12px; border-radius: 8px; }
+.nav-link.active { color: var(--primary); }
+
+.btn {
+    padding: 12px 32px; border-radius: 50px; border: none; font-weight: 600;
+    cursor: pointer; transition: all 0.3s; text-decoration: none;
+}
+.btn-primary { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+.btn-outline { background: transparent; border: 2px solid var(--border); color: var(--foreground); }
+
+.card, .user-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s;
+}
+.user-card:hover { transform: translateY(-4px); border-color: var(--primary); }
+
+.gradient-text {
+    background: linear-gradient(135deg, var(--primary), #059669);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.main-content { margin-top: 100px; }
+
+/* Add more from your original styles.css as needed */
