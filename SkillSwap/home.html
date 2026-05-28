@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SkillSwap</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css" />
+
+</head>
+<body>
+
+   <!-- NAVBAR -->
+    <header class="header glass">
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fa-solid fa-star-four-points"></i>
+                <span>SkillSwap</span>
+            </div>
+
+            <nav class="nav">
+                <a href="home.html" class="nav-link active">Home</a>
+                <a href="find-skills.html" class="nav-link">Find Skills</a>
+                <a href="#" class="nav-link">Messages</a>
+                <a href="blog.html" class="nav-link">Blog</a>
+                <a href="about.html" class="nav-link">About</a>
+            </nav>
+
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+
+                <div class="profile-dropdown">
+                    <button class="profile-btn" id="profileBtn">
+                        <i class="fa-regular fa-user"></i>
+                        Profile
+                    </button>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="#" class="dropdown-item"><i class="fa-regular fa-user"></i> My Profile</a>
+                        <a href="#" class="dropdown-item"><i class="fa-regular fa-calendar-check"></i> My Sessions</a>
+                        <a href="#" class="dropdown-item"><i class="fa-regular fa-bookmark"></i> Saved Skills</a>
+                        <a href="#" class="dropdown-item"><i class="fa-regular fa-message"></i> Messages</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item"><i class="fa-solid fa-gear"></i> Settings</a>
+                        <a href="#" class="dropdown-item logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary">Join Now</button>
+            </div>
+        </div>
+    </header>
+<!-- 
+  ─── HERO ───
+  <section class="hero">
+    <div class="hero-content">
+         <div class="badge">
+  <i class="fa-solid fa-bolt"></i> Community Skill Marketplace
+</div>
+      <h1 class="hero-title">
+  Find skilled professionals.<br />Offer your <span>expertise</span>.
+</h1>
+      <p class="hero-desc">
+  Connect with skilled professionals in your community. Book services, make secure payments, and grow through trusted skill-sharing and collaboration.
+</p>
+
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Search skills (e.g. React, UX Design...)" />
+        </div>
+        <button class="btn-search">Explore</button>
+      </div>
+    </div>
+    </div> -->
+
+     <!-- ─── HERO ─── -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="badge">
+        <i class="fa-solid fa-bolt"></i> Community-Powered Learning
+      </div>
+      <h1 class="hero-title">
+        Learn. Teach. Trade.<br />Grow.
+      </h1>
+      <p class="hero-desc">
+        Join a thriving community where skills are shared freely. Connect with passionate teachers and eager learners to exchange knowledge and grow together.
+      </p>
+      <div class="hero-btns">
+        <button class="btn-get-started">Get Started <i class="fa-solid fa-arrow-right"></i></button>
+        <button class="btn-learn-more">Learn More</button>
+      </div>
+      <div class="hero-stats">
+        <div>
+          <div class="stat-val">10K+</div>
+          <div class="stat-label">Members</div>
+        </div>
+        <div>
+          <div class="stat-val">500+</div>
+          <div class="stat-label">Skills</div>
+        </div>
+        <div>
+          <div class="stat-val">98%</div>
+          <div class="stat-label">Satisfied</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <!-- Group photo from Image 1 (community learning photo) -->
+      <img
+        class="hero-img"
+        src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80"
+        alt="Community skill sharing group"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      />
+      <div class="hero-img-placeholder" style="display:none">
+        <i class="fa-solid fa-users"></i>
+        <span>Community Photo</span>
+        <small style="font-size:11px;text-align:center;padding:0 20px">Add your group photo here</small>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ─── AVAILABLE SERVICES (unchanged) ─── -->
+  <section class="discover">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Available Services</h2>
+        <p class="section-subtitle">Discover community requests updated live</p>
+      </div>
+      <div class="filter-group">
+        <button class="btn-filter active">All</button>
+        <button class="btn-filter">Development</button>
+        <button class="btn-filter">Design</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="skill-card">
+        <div>
+          <div class="card-head">
+            <span class="cat-tag dev">Development</span>
+            <div class="rating"><i class="fa-solid fa-star"></i> 4.9</div>
+          </div>
+          <div class="card-body">
+            <h3>React Architecture</h3>
+            <p>Master clean state management and optimization hooks setup.</p>
+          </div>
+        </div>
+        <div class="card-foot">
+          <div class="foot-user">
+            <div class="avatar-sm">JD</div>
+            <span>John D.</span>
+          </div>
+          <p class="wants-tag">Price: <span>Rs. 1,500 / Session</span></p>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div>
+          <div class="card-head">
+            <span class="cat-tag design">Design</span>
+            <div class="rating"><i class="fa-solid fa-star"></i> 5.0</div>
+          </div>
+          <div class="card-body">
+            <h3>Typography Systems</h3>
+            <p>Creating functional text scaling frameworks across responsive viewpoints.</p>
+          </div>
+        </div>
+        <div class="card-foot">
+          <div class="foot-user">
+            <div class="avatar-sm">SK</div>
+            <span>Sarah K.</span>
+          </div>
+          <p class="wants-tag">Price: <span>Rs. 2,500 / Hour</span></p>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div>
+          <div class="card-head">
+            <span class="cat-tag marketing">Marketing</span>
+            <div class="rating"><i class="fa-solid fa-star"></i> 4.7</div>
+          </div>
+          <div class="card-body">
+            <h3>SEO Funnel Optimization</h3>
+            <p>Organic lead captures across high performance structural landing pages.</p>
+          </div>
+        </div>
+        <div class="card-foot">
+          <div class="foot-user">
+            <div class="avatar-sm">TH</div>
+            <span>Tom H.</span>
+          </div>
+          <p class="wants-tag">Price: <span>Rs. 1,200 / Project</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ─── HOW SKILLSWAP WORKS (from Image 2) ─── -->
+  <section class="how-section">
+    <div class="how-inner">
+      <div class="how-label">How SkillSwap Works</div>
+      <h2 class="how-title">Simple steps to get started</h2>
+      <p class="how-desc">Our platform makes it simple to connect, learn, and share your expertise with others in the community.</p>
+
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-icon green"><i class="fa-solid fa-user-plus"></i></div>
+          <h4>Create Profile</h4>
+          <p>Sign up and list the skills you can teach and what you'd like to learn.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon teal"><i class="fa-solid fa-magnifying-glass"></i></div>
+          <h4>Find Matches</h4>
+          <p>Search for teachers or learners by skill, location, or availability.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon emerald"><i class="fa-regular fa-comment-dots"></i></div>
+          <h4>Connect</h4>
+          <p>Message potential matches and arrange skill exchanges that work for both.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon orange"><i class="fa-regular fa-star"></i></div>
+          <h4>Learn &amp; Review</h4>
+          <p>Share your knowledge, learn new skills, and build trust through reviews.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ─── BUILT ON TRUST (from Image 3) ─── -->
+  <section class="trust-section">
+    <div class="trust-content">
+      <div class="trust-badge"><i class="fa-solid fa-shield-halved"></i> Safe &amp; Trusted</div>
+      <h2 class="trust-title">Built on Trust</h2>
+      <p class="trust-desc">Our review and rating system ensures accountability. Every exchange is rated by both parties, building a reputation system that keeps our community safe and reliable.</p>
+      <ul class="trust-list">
+        <li>Verified user profiles and reviews</li>
+        <li>Secure in-platform messaging</li>
+        <li>Community guidelines and support</li>
+      </ul>
+    </div>
+    <div class="trust-visual">
+      <!-- Pottery / hands image from Image 3 -->
+      <img
+        class="trust-img"
+        src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800&q=80"
+        alt="Hands collaborating on pottery wheel"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      />
+      <div class="trust-img-placeholder" style="display:none">
+        <i class="fa-solid fa-hands"></i>
+        <span>Trust Photo</span>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ─── CTA (unchanged) ─── -->
+  <section class="cta-section">
+    <div class="cta-box">
+      <div class="cta-icon"><i class="fa-solid fa-heart"></i></div>
+      <p class="cta-small">Ready to Find or Offer Services?</p>
+      <h2 class="cta-title">
+        Join a trusted platform where skilled individuals offer services, connect with clients, and earn through their expertise.
+      </h2>
+      <div class="cta-buttons">
+        <button class="btn-cta-dark">Browse Skills</button>
+        <button class="btn-cta-outline">Create Free Account</button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ─── FOOTER (unchanged) ─── -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-icon">SS</div>
+          <span>SkillSwap</span>
+        </div>
+        <p>Connecting service providers and clients through a trusted skill-sharing marketplace.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="#">How It Works</a>
+        <a href="#">Safety Guidelines</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="#">Blog</a>
+        <a href="#">Help Center</a>
+      </div>
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <div class="social-icons">
+          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Profile dropdown toggle
+    const profileBtn = document.getElementById('profileBtn');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    profileBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle('open');
+    });
+    document.addEventListener('click', () => dropdownMenu.classList.remove('open'));
+
+    // Filter buttons
+    document.querySelectorAll('.btn-filter').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+  </script>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSwap - Blog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link rel="stylesheet" href="blog.css">
+</head>
+<body>
+     <!-- NAVBAR -->
+    <header class="header glass">
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fa-solid fa-star-four-points"></i>
+                <span>SkillSwap</span>
+            </div>
+
+            <nav class="nav">
+              <a href="home.html" class="nav-link">Home</a>
+                <a href="find-skills.html" class="nav-link">Find Skills</a>
+                <a href="messages.html" class="nav-link">Messages</a>
+              <a href="blog.html" class="nav-link active">Blog</a>
+                <a href="about.html" class="nav-link">About</a>
+            </nav>
+
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+
+                <div class="profile-dropdown">
+                    <button class="profile-btn" id="profileBtn">
+                        <i class="fa-regular fa-user"></i>
+                        Profile
+                    </button>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="#" class="dropdown-item"><i class="fa-regular fa-user"></i> My Profile</a>
+                        <a href="#" class="dropdown-item"><i class="fa-regular fa-calendar-check"></i> My Sessions</a>
+                        <a href="#" class="dropdown-item"><i class="fa-regular fa-bookmark"></i> Saved Skills</a>
+                        <a href="#" class="dropdown-item"><i class="fa-regular fa-message"></i> Messages</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item"><i class="fa-solid fa-gear"></i> Settings</a>
+                        <a href="#" class="dropdown-item logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary">Join Now</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div class="container">
+                <h1 class="gradient-text">SkillSwap Blog</h1>
+                <p>Success stories, learning tips, and featured community members</p>
+            </div>
+        </div>
+        <div class="container">
+            <div id="blogPosts" class="grid-3"></div>
+        </div>
+    </main>
+
+ <!-- ─── FOOTER (unchanged) ─── -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-icon">SS</div>
+          <span>SkillSwap</span>
+        </div>
+        <p>Connecting service providers and clients through a trusted skill-sharing marketplace.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="#">How It Works</a>
+        <a href="#">Safety Guidelines</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="#">Blog</a>
+        <a href="#">Help Center</a>
+      </div>
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <div class="social-icons">
+          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Profile dropdown toggle
+    const profileBtn = document.getElementById('profileBtn');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    profileBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle('open');
+    });
+    document.addEventListener('click', () => dropdownMenu.classList.remove('open'));
+
+  </script>
+
+
+    <script src="blog.js"></script>
+</body>
+</html>
