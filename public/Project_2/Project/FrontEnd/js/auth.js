@@ -39,21 +39,20 @@ async function loadNavbar() {
                     <a href="about.html" class="nav-link">About</a>
                     <a href="blog.html" class="nav-link">Blog</a>
                 </nav>
-                <div style="display:flex; gap:12px; align-items:center;">
+                <div class="nav-right">
                     <button onclick="toggleTheme()" class="theme-toggle" id="themeToggle">🌙</button>
-                    ${DEV_MODE ? 
-                        '<a href="login.html" class="btn btn-outline">Login</a>' : 
-                        '<button onclick="logout()" class="btn btn-outline">Logout</button>'
-                    }
+                    <a href="login.html" class="btn btn-outline" style="margin-left: 12px;">Login</a>
                 </div>
             </div>
         </header>
     `;
     const placeholder = document.getElementById('navbar-placeholder');
-    if (placeholder) placeholder.innerHTML = html;
+    if (placeholder) {
+        placeholder.innerHTML = html;
+    }
 }
 
 function toggleTheme() {
     document.documentElement.classList.toggle('dark');
     localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-}
+} f 
