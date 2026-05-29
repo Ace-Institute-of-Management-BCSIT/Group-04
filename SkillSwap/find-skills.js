@@ -1,10 +1,10 @@
 // Mock Data
 const users = [ /* ... same as original ... */ 
-    { id: 1, name: "Sarah Chen", location: "San Francisco, CA", teaching: ["Web Development", "React", "JavaScript"], learning: ["UI/UX Design", "Photography"], availability: "Virtual", rating: 4.9, reviews: 24, bio: "Full-stack developer with 5 years of experience. Love teaching coding!" },
+    { id: 1, name: "Sarah Chen", location: "San Francisco, CA", teaching: ["Web Development", "React", "JavaScript"], learning: ["UI/UX Design", "Photography"], availability: "In-Person", rating: 4.9, reviews: 24, bio: "Full-stack developer with 5 years of experience. Love teaching coding!" },
     { id: 2, name: "Marcus Johnson", location: "New York, NY", teaching: ["Guitar", "Music Theory", "Songwriting"], learning: ["Spanish", "Cooking"], availability: "In-Person", rating: 5.0, reviews: 18, bio: "Professional musician teaching guitar for 10 years." },
-    { id: 3, name: "Emily Rodriguez", location: "Austin, TX", teaching: ["Yoga", "Meditation", "Wellness"], learning: ["Video Editing", "Content Creation"], availability: "Both", rating: 4.8, reviews: 31, bio: "Certified yoga instructor. Passionate about wellness." },
-    { id: 4, name: "David Kim", location: "Seattle, WA", teaching: ["Korean Language", "Cooking"], learning: ["Graphic Design", "Marketing"], availability: "Virtual", rating: 4.7, reviews: 15, bio: "Native Korean speaker. Love sharing my culture!" },
-    { id: 5, name: "Aisha Patel", location: "Boston, MA", teaching: ["Data Science", "Python", "Machine Learning"], learning: ["Public Speaking", "Writing"], availability: "Virtual", rating: 4.9, reviews: 27, bio: "Data scientist making ML accessible to everyone!" },
+    { id: 3, name: "Emily Rodriguez", location: "Austin, TX", teaching: ["Yoga", "Meditation", "Wellness"], learning: ["Video Editing", "Content Creation"], availability: "In-Person", rating: 4.8, reviews: 31, bio: "Certified yoga instructor. Passionate about wellness." },
+    { id: 4, name: "David Kim", location: "Seattle, WA", teaching: ["Korean Language", "Cooking"], learning: ["Graphic Design", "Marketing"], availability: "In-Person", rating: 4.7, reviews: 15, bio: "Native Korean speaker. Love sharing my culture!" },
+    { id: 5, name: "Aisha Patel", location: "Boston, MA", teaching: ["Data Science", "Python", "Machine Learning"], learning: ["Public Speaking", "Writing"], availability: "In-Person", rating: 4.9, reviews: 27, bio: "Data scientist making ML accessible to everyone!" },
     { id: 6, name: "Jake Morrison", location: "Denver, CO", teaching: ["Photography", "Photo Editing"], learning: ["Rock Climbing", "Hiking"], availability: "In-Person", rating: 4.8, reviews: 22, bio: "Landscape photographer sharing my passion!" }
 ];
 
@@ -22,7 +22,10 @@ function renderUserCards() {
                 <div class="avatar"></div>
                 <div class="user-info">
                     <h3>${user.name}</h3>
-                    <div class="user-meta">📍 ${user.location}</div>
+                    <div class="user-meta">
+                        <span>📍 ${user.location}</span>
+                        <span class="user-availability">👥 In-Person</span>
+                    </div>
                     <div class="rating">⭐ ${user.rating} (${user.reviews})</div>
                 </div>
             </div>
@@ -35,7 +38,6 @@ function renderUserCards() {
                 <strong>Wants to learn:</strong>
                 <div class="skill-tags">${user.learning.map(skill => `<span class="skill-tag learning">${skill}</span>`).join('')}</div>
             </div>
-            <div class="availability">${user.availability === 'Virtual' ? '💻' : user.availability === 'In-Person' ? '👥' : '💻 👥'} ${user.availability}</div>
             <div class="card-actions">
                 <button class="btn btn-primary">View Profile</button>
                 <button class="btn btn-outline">Message</button>
@@ -47,7 +49,6 @@ function renderUserCards() {
 function filterUsers() {
     const searchQuery = document.getElementById('searchInput').value.toLowerCase();
     const location = document.getElementById('locationFilter').value;
-    const availability = document.getElementById('availabilityFilter').value;
     
     filteredUsers = users.filter(user => {
         const matchesSearch = !searchQuery || 
@@ -55,8 +56,7 @@ function filterUsers() {
             user.teaching.some(s => s.toLowerCase().includes(searchQuery)) ||
             user.learning.some(s => s.toLowerCase().includes(searchQuery));
         const matchesLocation = location === 'all' || user.location.includes(location);
-        const matchesAvailability = availability === 'all' || user.availability === availability || user.availability === 'Both';
-        return matchesSearch && matchesLocation && matchesAvailability;
+        return matchesSearch && matchesLocation;
     });
     renderUserCards();
 }
@@ -76,5 +76,4 @@ themeToggle.addEventListener('click', () => {
 // Init
 document.getElementById('searchInput').addEventListener('input', filterUsers);
 document.getElementById('locationFilter').addEventListener('change', filterUsers);
-document.getElementById('availabilityFilter').addEventListener('change', filterUsers);
 renderUserCards();
