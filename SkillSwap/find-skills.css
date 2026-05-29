@@ -358,7 +358,7 @@ body::before {
 
 .filter-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr;
     gap: 16px;
 }
 
@@ -434,9 +434,15 @@ body::before {
     margin-bottom: 4px;
 }
 
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
 .user-meta,
 .user-bio,
-.availability,
 .skill-section strong {
     color: var(--muted);
 }
@@ -449,6 +455,31 @@ body::before {
 
 .user-bio {
     margin-bottom: 16px;
+}
+
+.user-meta {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.user-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.user-availability {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--primary-dark);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .skill-section + .skill-section {
@@ -483,12 +514,6 @@ body::before {
 .skill-tag.learning {
     background: var(--secondary);
     color: var(--foreground);
-}
-
-.availability {
-    margin-top: 16px;
-    font-size: 0.92rem;
-    font-weight: 600;
 }
 
 .card-actions {
