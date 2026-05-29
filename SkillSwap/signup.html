@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Account - SkillSwap</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <link rel="stylesheet" href="signup.css">
+</head>
+<body>
+
+  <div class="auth-container">
+
+    <div class="left-panel">
+      <div class="overlay"></div>
+
+      <div class="brand">
+        <i class="fa-solid fa-star-four-points"></i>
+        <span>SkillSwap</span>
+      </div>
+
+      <div class="left-content">
+        <span class="badge">
+          <i class="fa-solid fa-bolt"></i>
+          Community Skill Marketplace
+        </span>
+
+        <h1>Share Skills.<br>Grow Together.</h1>
+
+        <p>
+          Create your SkillSwap account and connect with skilled professionals,
+          learners, and trusted community members.
+        </p>
+
+        <div class="feature-list">
+          <div class="feature">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Secure Authentication</span>
+          </div>
+
+          <div class="feature">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Find Trusted Providers</span>
+          </div>
+
+          <div class="feature">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Book Sessions Easily</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-panel">
+
+      <form class="signup-form" id="signupForm">
+
+        <div class="form-header">
+          <h2>Create Account</h2>
+          <p>Join the SkillSwap community today</p>
+        </div>
+
+        <div class="input-group">
+          <label>Full Name</label>
+
+          <div class="input-box">
+            <i class="fa-regular fa-user"></i>
+
+            <input
+              type="text"
+              id="fullname"
+              placeholder="Enter your full name"
+            />
+          </div>
+
+          <small class="error"></small>
+        </div>
+
+        <div class="input-group">
+          <label>Email Address</label>
+
+          <div class="input-box">
+            <i class="fa-regular fa-envelope"></i>
+
+            <input
+              type="email"
+              id="email"
+              placeholder="Enter your email"
+            />
+          </div>
+
+          <small class="error"></small>
+        </div>
+
+        <div class="input-group">
+          <label>Phone Number</label>
+
+          <div class="input-box">
+            <i class="fa-solid fa-phone"></i>
+
+            <input
+              type="tel"
+              id="phone"
+              placeholder="Enter your phone number"
+            />
+          </div>
+
+          <small class="error"></small>
+        </div>
+
+        <div class="input-group">
+          <label>Password</label>
+
+          <div class="input-box">
+            <i class="fa-solid fa-lock"></i>
+
+            <input
+              type="password"
+              id="password"
+              placeholder="Create password"
+            />
+
+            <span class="toggle-password" id="togglePassword">
+              <i class="fa-regular fa-eye"></i>
+            </span>
+          </div>
+
+          <small class="error"></small>
+        </div>
+
+        <div class="input-group">
+          <label>Select Role</label>
+
+          <div class="role-wrapper">
+
+            <label class="role-card">
+              <input type="radio" name="role" value="Skill Seeker">
+
+              <div class="role-content">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Skill Seeker</span>
+              </div>
+            </label>
+
+            <label class="role-card">
+              <input type="radio" name="role" value="Skill Provider">
+
+              <div class="role-content">
+                <i class="fa-solid fa-briefcase"></i>
+                <span>Skill Provider</span>
+              </div>
+            </label>
+
+          </div>
+
+          <small class="error role-error"></small>
+        </div>
+
+        <button type="submit" class="signup-btn">
+          Create Account
+        </button>
+
+        <div class="bottom-text">
+          Already have an account?
+          <a href="login.html">Login</a>
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+  <script src="signup.js"></script>
+</body>
+</html>
