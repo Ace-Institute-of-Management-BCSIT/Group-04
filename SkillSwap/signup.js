@@ -68,13 +68,50 @@ form.addEventListener("submit", function(e){
     valid = false;
   }
 
-  if(valid){
+ if(valid){
 
-    alert("Account Created Successfully!");
+    fetch("http://localhost:5000/signup", {
 
-    window.location.href = "login.html";
-  }
+        method: "POST",
 
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+            full_name: fullname.value,
+            email: email.value,
+            phone: phone.value,
+            password: password.value,
+            role: role.value
+
+        })
+
+    })
+    .then(response => response.json())
+
+    .then(data => {
+
+        alert(data.message);
+
+        if(data.message === "Signup Successful"){
+
+            window.location.href = "login.html";
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        alert("Something went wrong");
+
+    });
+
+}
 });
 
 function showError(input,message){
@@ -83,3 +120,4 @@ function showError(input,message){
 
   error.innerText = message;
 }
+

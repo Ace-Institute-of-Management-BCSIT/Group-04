@@ -1,11 +1,11 @@
 // Mock Data
 const users = [ /* ... same as original ... */ 
-    { id: 1, name: "Sarah Chen", location: "San Francisco, CA", teaching: ["Web Development", "React", "JavaScript"], learning: ["UI/UX Design", "Photography"], availability: "In-Person", rating: 4.9, reviews: 24, bio: "Full-stack developer with 5 years of experience. Love teaching coding!" },
-    { id: 2, name: "Marcus Johnson", location: "New York, NY", teaching: ["Guitar", "Music Theory", "Songwriting"], learning: ["Spanish", "Cooking"], availability: "In-Person", rating: 5.0, reviews: 18, bio: "Professional musician teaching guitar for 10 years." },
-    { id: 3, name: "Emily Rodriguez", location: "Austin, TX", teaching: ["Yoga", "Meditation", "Wellness"], learning: ["Video Editing", "Content Creation"], availability: "In-Person", rating: 4.8, reviews: 31, bio: "Certified yoga instructor. Passionate about wellness." },
-    { id: 4, name: "David Kim", location: "Seattle, WA", teaching: ["Korean Language", "Cooking"], learning: ["Graphic Design", "Marketing"], availability: "In-Person", rating: 4.7, reviews: 15, bio: "Native Korean speaker. Love sharing my culture!" },
-    { id: 5, name: "Aisha Patel", location: "Boston, MA", teaching: ["Data Science", "Python", "Machine Learning"], learning: ["Public Speaking", "Writing"], availability: "In-Person", rating: 4.9, reviews: 27, bio: "Data scientist making ML accessible to everyone!" },
-    { id: 6, name: "Jake Morrison", location: "Denver, CO", teaching: ["Photography", "Photo Editing"], learning: ["Rock Climbing", "Hiking"], availability: "In-Person", rating: 4.8, reviews: 22, bio: "Landscape photographer sharing my passion!" }
+    { id: 1, name: "Sulav Raj Shrestha", location: "Kathmandu, Nepal", teaching: ["Web Development", "React", "JavaScript"], learning: ["UI/UX Design", "Photography"], availability: "In-Person", rating: 4.9, reviews: 24, bio: "Full-stack developer with 5 years of experience. Love teaching coding!" },
+    { id: 2, name: "Krish Shrestha", location: "Kathmandu, Nepal", teaching: ["Guitar", "Music Theory", "Songwriting"], learning: ["Spanish", "Cooking"], availability: "In-Person", rating: 5.0, reviews: 18, bio: "Professional musician teaching guitar for 10 years." },
+    { id: 3, name: "Grishma Adhikari", location: "Kathmandu, Nepal", teaching: ["Yoga", "Meditation", "Wellness"], learning: ["Video Editing", "Content Creation"], availability: "In-Person", rating: 4.8, reviews: 31, bio: "Certified yoga instructor. Passionate about wellness." },
+    { id: 4, name: "Anubhav Dahal", location: "Kathmandu, Nepal", teaching: ["Korean Language", "Cooking"], learning: ["Graphic Design", "Marketing"], availability: "In-Person", rating: 4.7, reviews: 15, bio: "Native Korean speaker. Love sharing my culture!" },
+    { id: 5, name: "Aisha Patel", location: "Kathmandu, Nepal", teaching: ["Data Science", "Python", "Machine Learning"], learning: ["Public Speaking", "Writing"], availability: "In-Person", rating: 4.9, reviews: 27, bio: "Data scientist making ML accessible to everyone!" },
+    { id: 6, name: "Jr. NTR", location: "Kathmandu, Nepal", teaching: ["Photography", "Photo Editing"], learning: ["Rock Climbing", "Hiking"], availability: "In-Person", rating: 4.8, reviews: 22, bio: "Landscape photographer sharing my passion!" }
 ];
 
 let filteredUsers = [...users];
@@ -23,7 +23,7 @@ function renderUserCards() {
                 <div class="user-info">
                     <h3>${user.name}</h3>
                     <div class="user-meta">
-                        <span>📍 ${user.location}</span>
+                        <span> ${user.location}</span>
                         <span class="user-availability">👥 In-Person</span>
                     </div>
                     <div class="rating">⭐ ${user.rating} (${user.reviews})</div>
