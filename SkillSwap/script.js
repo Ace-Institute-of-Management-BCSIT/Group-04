@@ -1,15 +1,3 @@
-// // Profile Dropdown
-// const profileBtn = document.getElementById('profileBtn');
-// const dropdownMenu = document.getElementById('dropdownMenu');
-
-// profileBtn.addEventListener('click', (e) => {
-//     e.stopPropagation();
-//     dropdownMenu.classList.toggle('open');
-// });
-
-// document.addEventListener('click', () => dropdownMenu.classList.remove('open'));
-
-// Theme Toggle (Dark = Default)
 const themeToggle = document.getElementById('themeToggle');
 const html = document.documentElement;
 
@@ -35,8 +23,12 @@ themeToggle?.addEventListener('click', () => {
     setTheme(html.classList.contains('light') ? 'dark' : 'light');
 });
 
-// // Search
-// document.getElementById('searchBtn').addEventListener('click', () => {
-//     const query = document.getElementById('searchInput').value.trim();
-//     if (query) alert(`Searching: "${query}"`);
-// });
+document.querySelectorAll('.btn-filter').forEach((button) => {
+    button.addEventListener('click', function () {
+        document.querySelectorAll('.btn-filter').forEach((activeButton) => {
+            activeButton.classList.remove('active');
+        });
+
+        this.classList.add('active');
+    });
+});

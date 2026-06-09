@@ -15,19 +15,3 @@ if (themeToggle) {
         localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
     });
 }
-
-const profileBtn = document.getElementById('profileBtn');
-const dropdownMenu = document.getElementById('dropdownMenu');
-
-if (profileBtn && dropdownMenu) {
-    profileBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dropdownMenu.classList.toggle('open');
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!dropdownMenu.contains(e.target) && !profileBtn.contains(e.target)) {
-            dropdownMenu.classList.remove('open');
-        }
-    });
-}

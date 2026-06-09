@@ -86,6 +86,9 @@ loginForm.addEventListener("submit", function (e) {
 
             alert("Login Successful!");
 
+            localStorage.setItem("skillSwapLoggedIn", "true");
+            localStorage.setItem("skillSwapUserEmail", loginEmail.value.trim());
+
             // Redirect to Home Page
             window.location.href = "home.html";
 
