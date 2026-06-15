@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSwap - User Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link rel="stylesheet" href="find-skills.css">
+    <link rel="stylesheet" href="user-profile.css">
+</head>
+<body>
+    <!-- NAVBAR -->
+    <header class="header glass">
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fa-solid fa-star-four-points"></i>
+                <span>SkillSwap</span>
+            </div>
+
+            <nav class="nav">
+                <a href="home.html" class="nav-link">Home</a>
+                <a href="find-skills.html" class="nav-link">Find Skills</a>
+                <a href="chat.html" class="nav-link">Messages</a>
+                <a href="blog.html" class="nav-link">Blog</a>
+                <a href="about.html" class="nav-link">About</a>
+            </nav>
+
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fa-solid fa-sun sun-icon"></i>
+                    <i class="fa-solid fa-moon moon-icon"></i>
+                </button>
+
+                <div class="profile-dropdown">
+                    <button class="profile-btn" id="profileBtn">
+                        <i class="fa-regular fa-user"></i>
+                        <span class="profile-name">Profile</span>
+                    </button>
+                </div>
+
+                <button class="btn btn-primary">Join Now</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container" id="profileContainer">
+            <!-- Dynamically loaded by JS -->
+            <div class="loading">Loading profile...</div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <!-- Same footer as find-skills.html -->
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <div class="footer-logo-icon">SS</div>
+                    <span>SkillSwap</span>
+                </div>
+                <p>Connecting learners and teachers worldwide through skill exchange.</p>
+            </div>
+            <!-- other footer columns -->
+        </div>
+    </footer>
+
+    <script src="api.js"></script>
+    <script src="user-profile.js"></script>
+</body>
+</html>
