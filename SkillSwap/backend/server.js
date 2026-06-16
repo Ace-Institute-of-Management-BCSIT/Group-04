@@ -1,7 +1,6 @@
-require('dotenv').config();
-
 const express = require("express");
 const cors = require("cors");
+
 const db = require("./db");
 
 const app = express();
@@ -9,9 +8,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 
-// Signup
 app.post("/signup", (req, res) => {
 
     const {
@@ -22,6 +20,8 @@ app.post("/signup", (req, res) => {
         role
     } = req.body;
 
+      console.log("Password received:", password);
+
     const sql = `
     INSERT INTO users
     (full_name,email,phone,password,role)
@@ -30,10 +30,19 @@ app.post("/signup", (req, res) => {
 
     db.query(
         sql,
-        [full_name, email, phone, password, role],
+        [
+            full_name,
+            email,
+            phone,
+            password,
+            role
+        ],
+
+        
         (err, result) => {
 
             if (err) {
+
                 return res.status(400).json({
                     message: "Email already exists"
                 });
@@ -46,7 +55,6 @@ app.post("/signup", (req, res) => {
     );
 });
 
-// Login
 app.post("/login", (req, res) => {
 
     const { email, password } = req.body;
@@ -57,6 +65,7 @@ app.post("/login", (req, res) => {
     db.query(sql, [email, password], (err, result) => {
 
         if (err) {
+
             return res.json({
                 success: false,
                 message: "Database Error"
@@ -64,26 +73,26 @@ app.post("/login", (req, res) => {
         }
 
         if (result.length > 0) {
+
             return res.json({
                 success: true,
                 message: "Login Successful"
             });
+
+        } else {
+
+            return res.json({
+                success: false,
+                message: "Invalid Email or Password"
+            });
         }
-
-        return res.json({
-            success: false,
-            message: "Invalid Email or Password"
-        });
     });
 });
 
-// Health Check
-app.get("/", (req, res) => {
-    res.json({
-        message: "SkillSwap Backend Running"
-    });
-});
+app.listen(PORT,()=>{
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(
+        `Server running on port ${PORT}`
+    );
+
 });
