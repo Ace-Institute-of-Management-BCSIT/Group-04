@@ -36,18 +36,78 @@ async function loadUserProfile() {
                 avatar: "?u=2",
                 location: "Kathmandu, Nepal",
                 joined: "June 2024",
-                bio: "Full-stack developer with 5 years of experience. Passionate about teaching coding and making technology accessible to everyone.",
-                rating: 4.9,
-                reviews: 24,
-                sessions: 163,
+                bio: "Professional musician teaching guitar for 10 years.",
+                rating: 5.0,
+                reviews: 18,
+                sessions: 120,
                 teaching: [
-                    { name: "Web Development", level: "Expert", progress: 95, sessions: 45 },
-                    { name: "React", level: "Expert", progress: 85, sessions: 38 },
-                    { name: "JavaScript", level: "Expert", progress: 98, sessions: 52 }
+                    { name: "Guitar", level: "Expert", progress: 98, sessions: 60 },
+                    { name: "Music Theory", level: "Expert", progress: 95, sessions: 45 },
+                    { name: "Songwriting", level: "Advanced", progress: 88, sessions: 35 }
+                ]
+            },
+            3: {
+                id: 3,
+                name: "Grishma Adhikari",
+                avatar: "?u=3",
+                location: "Kathmandu, Nepal",
+                joined: "May 2024",
+                bio: "Certified yoga instructor. Passionate about wellness.",
+                rating: 4.8,
+                reviews: 31,
+                sessions: 156,
+                teaching: [
+                    { name: "Yoga", level: "Expert", progress: 96, sessions: 72 },
+                    { name: "Meditation", level: "Advanced", progress: 92, sessions: 52 },
+                    { name: "Wellness", level: "Expert", progress: 95, sessions: 48 }
+                ]
+            },
+            4: {
+                id: 4,
+                name: "Anubhav Dahal",
+                avatar: "?u=4",
+                location: "Kathmandu, Nepal",
+                joined: "April 2024",
+                bio: "Native Korean speaker. Love sharing my culture!",
+                rating: 4.7,
+                reviews: 15,
+                sessions: 78,
+                teaching: [
+                    { name: "Korean Language", level: "Expert", progress: 99, sessions: 55 },
+                    { name: "Cooking", level: "Advanced", progress: 85, sessions: 28 }
+                ]
+            },
+            5: {
+                id: 5,
+                name: "Aisha Patel",
+                avatar: "?u=5",
+                location: "Kathmandu, Nepal",
+                joined: "March 2024",
+                bio: "Data scientist making ML accessible to everyone!",
+                rating: 4.9,
+                reviews: 27,
+                sessions: 142,
+                teaching: [
+                    { name: "Data Science", level: "Expert", progress: 97, sessions: 58 },
+                    { name: "Python", level: "Expert", progress: 99, sessions: 65 },
+                    { name: "Machine Learning", level: "Advanced", progress: 90, sessions: 42 }
+                ]
+            },
+            6: {
+                id: 6,
+                name: "Jr. NTR",
+                avatar: "?u=6",
+                location: "Kathmandu, Nepal",
+                joined: "February 2024",
+                bio: "Landscape photographer sharing my passion!",
+                rating: 4.8,
+                reviews: 22,
+                sessions: 98,
+                teaching: [
+                    { name: "Photography", level: "Expert", progress: 96, sessions: 55 },
+                    { name: "Photo Editing", level: "Advanced", progress: 90, sessions: 43 }
                 ]
             }
-            
-            // Add more mock users as needed
         };
 
         const user = mockUsers[userId] || mockUsers[1];
