@@ -130,8 +130,8 @@ function renderUserCards() {
                 <div class="user-info">
                     <h3>${user.name}</h3>
                     <div class="user-meta">
-                        <span>📍 ${user.location}</span>
-                        <span class="user-availability">👥 ${user.availability}</span>
+                        <span> ${user.location}</span>
+                        <span class="user-availability"> ${user.availability}</span>
                     </div>
                     <div class="rating">⭐ ${user.rating} (${user.reviews})</div>
                 </div>

@@ -121,9 +121,9 @@ async function loadUserProfile() {
                     <div class="profile-info">
                         <h1>${user.name}</h1>
                         <div class="profile-meta">
-                            <span>📍 ${user.location}</span>
+                            <span> ${user.location}</span>
                             <span>Joined ${user.joined}</span>
-                            <span>👥 In-Person</span>
+                            <span> In-Person</span>
                         </div>
                         <p class="bio">${user.bio}</p>
                         <div class="profile-actions">
@@ -137,22 +137,22 @@ async function loadUserProfile() {
 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">⭐</div>
+                        <div class="stat-icon"></div>
                         <div class="stat-value">${user.rating}</div>
                         <div class="stat-label">(${user.reviews} reviews)</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">📅</div>
+                        <div class="stat-icon"></div>
                         <div class="stat-value">${user.sessions}</div>
                         <div class="stat-label">Sessions</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">🧠</div>
+                        <div class="stat-icon"></div>
                         <div class="stat-value">4</div>
                         <div class="stat-label">Teaching</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">📚</div>
+                        <div class="stat-icon"></div>
                         <div class="stat-value">3</div>
                         <div class="stat-label">Learning</div>
                     </div>
