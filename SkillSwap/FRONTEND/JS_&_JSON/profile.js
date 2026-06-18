@@ -25,7 +25,7 @@ async function loadMyProfile() {
                 
                 <div class="profile-sidebar-card" style="flex: 1; min-width: 300px; background: var(--card-bg, #ffffff); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center;">
                     <div class="avatar-container" style="margin-bottom: 15px;">
-                        <img src="${user.avatar}" alt="User Avatar" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #2ecc71;">
+                        <img id="profileAvatarDisplay" src="${user.avatar}" alt="User Avatar" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #2ecc71;">
                     </div>
                     <h2 style="margin: 10px 0 5px 0; font-size: 1.5rem; color: var(--text-color, #2c3e50);">${user.name}</h2>
                     <span style="background: #2ecc71; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-block; margin-bottom: 15px;">
@@ -107,10 +107,14 @@ async function loadMyProfile() {
                             <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.85rem; color:#34495e;">LOCATION (CITY, COUNTRY)</label>
                             <input type="text" id="inputLocation" value="${user.location || ''}" placeholder="e.g. London, UK" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:0.95rem;">
                         </div>
+                        
                         <div style="margin-bottom: 15px;">
-                            <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.85rem; color:#34495e;">AVATAR PHOTO URL</label>
-                            <input type="url" id="inputAvatar" value="${user.avatar}" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:0.95rem;">
+                            <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.85rem; color:#34495e;">UPLOAD PROFILE IMAGE</label>
+                            <input type="file" id="inputAvatarFile" accept="image/*" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.95rem;">
+                            <small style="color: #7f8c8d; display:block; margin-top:4px;">Leave empty to keep your current avatar picture.</small>
+                            <input type="hidden" id="currentAvatarData" value="${user.avatar}">
                         </div>
+
                         <div style="margin-bottom: 20px;">
                             <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.85rem; color:#34495e;">SHORT BIO</label>
                             <textarea id="inputBio" rows="4" placeholder="Briefly describe your skillswap expertise..." style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:0.95rem; resize:vertical;">${user.bio || ''}</textarea>
@@ -149,12 +153,28 @@ function bindModalControls() {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
+        const fileInput = document.getElementById("inputAvatarFile");
+        let avatarFinalValue = document.getElementById("currentAvatarData").value;
+
+        // FIXED: Convert local device file into a database-ready Base64 text string
+        if (fileInput && fileInput.files.length > 0) {
+            const selectedFile = fileInput.files[0];
+            
+            // Wait for file conversion to complete cleanly
+            avatarFinalValue = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result); // Resolves into base64 text
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(selectedFile);
+            });
+        }
+
         // Package matching inputs
         const updatedFields = {
             full_name: document.getElementById("inputName").value.trim(),
             phone: document.getElementById("inputPhone").value.trim(),
             location: document.getElementById("inputLocation").value.trim(),
-            avatar: document.getElementById("inputAvatar").value.trim(),
+            avatar: avatarFinalValue, // Holds our Base64 text string
             bio: document.getElementById("inputBio").value.trim()
         };
 
