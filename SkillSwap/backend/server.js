@@ -105,32 +105,22 @@ app.post("/api/auth/login", async (req, res) => {
 
 // ====================== USER PROFILE ROUTES ======================
 
-// Fetch profile data for current user (CRITICAL FIX)
+// Get Current Logged-in User Info and Metrics
 app.get("/api/users/me", verifyToken, async (req, res) => {
     const userId = req.userId;
 
     const sql = `
-        SELECT user_id, full_name, email, avatar, bio, location, rating, 
+        SELECT user_id, full_name, email, phone, avatar, bio, location, rating, 
                total_reviews, total_sessions, role, joined_date
         FROM users WHERE user_id = ?
     `;
 
     try {
         const [userRows] = await db.query(sql, [userId]);
-
-        if (userRows.length === 0) {
-            return res.status(404).json({ success: false, message: "User not found" });
-        }
+        if (userRows.length === 0) return res.status(404).json({ success: false, message: "User not found" });
 
         const user = userRows[0];
-
-        // Fetch user matching skills
-        const skillsSql = `
-            SELECT user_skill_id as id, skill_name as name, skill_level as level, 
-                   progress, sessions_completed 
-            FROM user_skills WHERE user_id = ?
-        `;
-        const [skills] = await db.query(skillsSql, [userId]);
+        const [skills] = await db.query(`SELECT user_skill_id as id, skill_name as name, skill_level as level FROM user_skills WHERE user_id = ?`, [userId]);
 
         return res.json({
             success: true,
@@ -138,6 +128,7 @@ app.get("/api/users/me", verifyToken, async (req, res) => {
                 id: user.user_id,
                 name: user.full_name,
                 email: user.email,
+                phone: user.phone || "", 
                 avatar: user.avatar || `https://i.pravatar.cc/300?u=${user.user_id}`,
                 bio: user.bio || "",
                 location: user.location || "",
@@ -151,7 +142,7 @@ app.get("/api/users/me", verifyToken, async (req, res) => {
             }
         });
     } catch (err) {
-        console.error("Fetch Profile Error:", err);
+        console.error("Fetch Me Error:", err);
         return res.status(500).json({ success: false, message: "Database fetch failure." });
     }
 });
@@ -170,19 +161,22 @@ app.get("/api/users/profile/:id", async (req, res) => {
     }
 });
 
-// Update Profile
+// Update Profile Details (Including Phone Number)
 app.put("/api/users/me", verifyToken, async (req, res) => {
     const userId = req.userId;
-    const { full_name, bio, location, avatar } = req.body;
+    // FIXED: Added phone to the destructured body mapping parameters
+    const { full_name, bio, location, avatar, phone } = req.body;
 
+    // FIXED: Appended phone to the SQL set operation queries
     const sql = `
         UPDATE users 
-        SET full_name = ?, bio = ?, location = ?, avatar = ?
+        SET full_name = ?, bio = ?, location = ?, avatar = ?, phone = ?
         WHERE user_id = ?
     `;
 
     try {
-        await db.query(sql, [full_name, bio, location, avatar, userId]);
+        // FIXED: Injected phone variable matching table syntax schema rules
+        await db.query(sql, [full_name, bio, location, avatar, phone, userId]);
         return res.json({ success: true, message: "Profile updated successfully" });
     } catch (err) {
         console.error("Update Profile Error:", err);
