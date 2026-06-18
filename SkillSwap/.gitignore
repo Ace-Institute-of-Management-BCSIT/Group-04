@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+
+# Environment & Sensitive Files
+.env
+backend/.env
+
+# Backend sensitive files
+backend/server.js
+backend/db.js
+
+# Logs and temp files
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
