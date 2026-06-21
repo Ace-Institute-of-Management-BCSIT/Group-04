@@ -1,4 +1,7 @@
 // frontend/js/user-profile.js
+
+const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/></svg>";
+
 async function loadUserProfile() {
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get('id');
@@ -12,118 +15,35 @@ async function loadUserProfile() {
     container.innerHTML = `<div class="loading">Loading profile...</div>`;
 
     try {
-        // For now using mock data. Later replace with api.getUserProfile(userId)
-        const mockUsers = {
-            1: {
-                id: 1,
-                name: "Suresh Shrestha",
-                avatar: "?u=1",
-                location: "Kathmandu, Nepal",
-                joined: "June 2024",
-                bio: "Full-stack developer with 5 years of experience. Passionate about teaching coding and making technology accessible to everyone.",
-                rating: 4.9,
-                reviews: 24,
-                sessions: 163,
-                teaching: [
-                    { name: "Web Development", level: "Expert", progress: 95, sessions: 45 },
-                    { name: "React", level: "Expert", progress: 85, sessions: 38 },
-                    { name: "JavaScript", level: "Expert", progress: 98, sessions: 52 }
-                ]
-            },
-            2: {
-                id: 2,
-                name: "Krish Shrestha",
-                avatar: "?u=2",
-                location: "Kathmandu, Nepal",
-                joined: "June 2024",
-                bio: "Professional musician teaching guitar for 10 years.",
-                rating: 5.0,
-                reviews: 18,
-                sessions: 120,
-                teaching: [
-                    { name: "Guitar", level: "Expert", progress: 98, sessions: 60 },
-                    { name: "Music Theory", level: "Expert", progress: 95, sessions: 45 },
-                    { name: "Songwriting", level: "Advanced", progress: 88, sessions: 35 }
-                ]
-            },
-            3: {
-                id: 3,
-                name: "Grishma Adhikari",
-                avatar: "?u=3",
-                location: "Kathmandu, Nepal",
-                joined: "May 2024",
-                bio: "Certified yoga instructor. Passionate about wellness.",
-                rating: 4.8,
-                reviews: 31,
-                sessions: 156,
-                teaching: [
-                    { name: "Yoga", level: "Expert", progress: 96, sessions: 72 },
-                    { name: "Meditation", level: "Advanced", progress: 92, sessions: 52 },
-                    { name: "Wellness", level: "Expert", progress: 95, sessions: 48 }
-                ]
-            },
-            4: {
-                id: 4,
-                name: "Anubhav Dahal",
-                avatar: "?u=4",
-                location: "Kathmandu, Nepal",
-                joined: "April 2024",
-                bio: "Native Korean speaker. Love sharing my culture!",
-                rating: 4.7,
-                reviews: 15,
-                sessions: 78,
-                teaching: [
-                    { name: "Korean Language", level: "Expert", progress: 99, sessions: 55 },
-                    { name: "Cooking", level: "Advanced", progress: 85, sessions: 28 }
-                ]
-            },
-            5: {
-                id: 5,
-                name: "Aisha Patel",
-                avatar: "?u=5",
-                location: "Kathmandu, Nepal",
-                joined: "March 2024",
-                bio: "Data scientist making ML accessible to everyone!",
-                rating: 4.9,
-                reviews: 27,
-                sessions: 142,
-                teaching: [
-                    { name: "Data Science", level: "Expert", progress: 97, sessions: 58 },
-                    { name: "Python", level: "Expert", progress: 99, sessions: 65 },
-                    { name: "Machine Learning", level: "Advanced", progress: 90, sessions: 42 }
-                ]
-            },
-            6: {
-                id: 6,
-                name: "Jr. NTR",
-                avatar: "?u=6",
-                location: "Kathmandu, Nepal",
-                joined: "February 2024",
-                bio: "Landscape photographer sharing my passion!",
-                rating: 4.8,
-                reviews: 22,
-                sessions: 98,
-                teaching: [
-                    { name: "Photography", level: "Expert", progress: 96, sessions: 55 },
-                    { name: "Photo Editing", level: "Advanced", progress: 90, sessions: 43 }
-                ]
-            }
-        };
+        // Fetch the profile and that provider's skills in parallel
+        const [profileRes, skillsRes] = await Promise.all([
+            window.api.getUserProfile(userId),
+            window.api.request(`/users/${userId}/skills`)
+        ]);
 
-        const user = mockUsers[userId] || mockUsers[1];
+        if (!profileRes.success) {
+            container.innerHTML = `<div class="card" style="padding:40px;text-align:center;color:red;">
+                ${profileRes.message || 'Profile not found'}
+            </div>`;
+            return;
+        }
+
+        const user = profileRes.user;
+        const teaching = (skillsRes.success && skillsRes.skills) ? skillsRes.skills : [];
+
+        const avatar = (user.avatar && !user.avatar.includes("pravatar.cc")) ? user.avatar : DEFAULT_AVATAR;
 
         let html = `
             <div class="profile-header card">
                 <div class="profile-top">
                     <div class="avatar-large">
-                        <img src="${user.avatar}" alt="${user.name}">
+                        <img src="${avatar}" alt="${user.name}">
                     </div>
                     <div class="profile-info">
                         <h1>${user.name}</h1>
                         <div class="profile-meta">
                             <span> ${user.location}</span>
                             <span>Joined ${user.joined}</span>
-                            <span> In-Person</span>
                         </div>
                         <p class="bio">${user.bio}</p>
                         <div class="profile-actions">
@@ -137,23 +57,19 @@ async function loadUserProfile() {
 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon"></div>
                         <div class="stat-value">${user.rating}</div>
                         <div class="stat-label">(${user.reviews} reviews)</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon"></div>
                         <div class="stat-value">${user.sessions}</div>
                         <div class="stat-label">Sessions</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon"></div>
-                        <div class="stat-value">4</div>
+                        <div class="stat-value">${teaching.length}</div>
                         <div class="stat-label">Teaching</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon"></div>
-                        <div class="stat-value">3</div>
+                        <div class="stat-value">0</div>
                         <div class="stat-label">Learning</div>
                     </div>
                 </div>
@@ -168,18 +84,15 @@ async function loadUserProfile() {
             <div id="teaching-tab" class="tab-content active">
                 <div class="skills-section card">
                     <h3>Skills I Can Teach</h3>
-                    ${user.teaching.map(skill => `
+                    ${teaching.length > 0 ? teaching.map(skill => `
                         <div class="skill-item">
                             <div class="skill-info">
-                                <span class="skill-tag teaching">${skill.name}</span>
-                                <span class="skill-level">${skill.level}</span>
+                                <span class="skill-tag teaching">${skill.skill_name}</span>
+                                <span class="skill-level">${skill.skill_level}</span>
                             </div>
-                            <div class="progress-bar">
-                                <div class="progress" style="width: ${skill.progress}%"></div>
-                            </div>
-                            <span class="sessions-count">${skill.sessions} sessions completed</span>
+                            ${skill.description ? `<p class="skill-desc">${skill.description}</p>` : ''}
                         </div>
-                    `).join('')}
+                    `).join('') : '<p style="color:#7f8c8d;">No skills added yet.</p>'}
                 </div>
             </div>
 
@@ -193,15 +106,14 @@ async function loadUserProfile() {
 
         container.innerHTML = html;
 
-        // Tab functionality
         setupTabs();
 
-        // Button actions
         document.getElementById('sendMessageBtn').addEventListener('click', () => {
             window.location.href = `chat.html?user=${user.id}`;
         });
 
     } catch (error) {
+        console.error("Failed to load profile:", error);
         container.innerHTML = `<div class="card" style="padding:40px;color:red;text-align:center;">Failed to load profile</div>`;
     }
 }

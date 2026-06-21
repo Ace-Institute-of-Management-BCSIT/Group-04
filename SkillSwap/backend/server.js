@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const http = require("http");
 const { Server } = require("socket.io");
 
-const db = require("./db"); 
+const db = require("./db");
 
 const app = express();
 const server = http.createServer(app);
@@ -34,7 +34,7 @@ io.on("connection", (socket) => {
 
     socket.on("send_message", (data) => {
         const { chatId, message, senderName } = data;
-        
+
         io.to(`chat_${chatId}`).emit("receive_message", {
             message,
             senderName,
@@ -51,7 +51,7 @@ io.on("connection", (socket) => {
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
-    
+
     if (!token) {
         return res.status(401).json({
             success: false,
@@ -96,7 +96,7 @@ app.post("/api/auth/register", async (req, res) => {
     }
 });
 
-// Async/Await Logn Route
+// Async/Await Login Route
 app.post("/api/auth/login", async (req, res) => {
     const { email, password } = req.body;
 
@@ -111,7 +111,7 @@ app.post("/api/auth/login", async (req, res) => {
 
         if (rows.length > 0) {
             const user = rows[0];
-            
+
             const token = jwt.sign(
                 { userId: user.user_id, email: user.email },
                 JWT_SECRET,
@@ -179,21 +179,44 @@ app.get("/api/users/me", verifyToken, async (req, res) => {
         });
     } catch (err) {
         console.error("Fetch /me Error:", err);
-        return res.status(500).json({ 
-            success: false, 
-            message: "Database fetch failure. Some columns may be missing." 
+        return res.status(500).json({
+            success: false,
+            message: "Database fetch failure. Some columns may be missing."
         });
     }
 });
-// Get Public Profile by ID
+
+// Public Profile by ID — includes stats for the profile page
 app.get("/api/users/profile/:id", async (req, res) => {
     const userId = req.params.id;
-    const sql = `SELECT user_id, full_name, email, avatar, bio, location, role FROM users WHERE user_id = ?`;
-    
+    const sql = `
+        SELECT user_id, full_name, avatar, bio, location, role,
+               rating, total_reviews, total_sessions, joined_date
+        FROM users 
+        WHERE user_id = ?
+    `;
     try {
         const [rows] = await db.query(sql, [userId]);
         if (rows.length === 0) return res.status(404).json({ success: false, message: "User not found" });
-        return res.json({ success: true, user: rows[0] });
+
+        const user = rows[0];
+        return res.json({
+            success: true,
+            user: {
+                id: user.user_id,
+                name: user.full_name,
+                avatar: user.avatar,
+                bio: user.bio || "No bio added yet.",
+                location: user.location || "Kathmandu, Nepal",
+                role: user.role,
+                rating: user.rating || 4.8,
+                reviews: user.total_reviews || 0,
+                sessions: user.total_sessions || 0,
+                joined: user.joined_date
+                    ? new Date(user.joined_date).toLocaleString('default', { month: 'long', year: 'numeric' })
+                    : '2026'
+            }
+        });
     } catch (err) {
         return res.status(500).json({ success: false, message: "Database Error" });
     }
@@ -202,10 +225,8 @@ app.get("/api/users/profile/:id", async (req, res) => {
 // Update Profile Details (Including Phone Number)
 app.put("/api/users/me", verifyToken, async (req, res) => {
     const userId = req.userId;
-    // FIXED: Added phone to the destructured body mapping parameters
     const { full_name, bio, location, avatar, phone } = req.body;
 
-    // FIXED: Appended phone to the SQL set operation queries
     const sql = `
         UPDATE users 
         SET full_name = ?, bio = ?, location = ?, avatar = ?, phone = ?
@@ -213,7 +234,6 @@ app.put("/api/users/me", verifyToken, async (req, res) => {
     `;
 
     try {
-        // FIXED: Injected phone variable matching table syntax schema rules
         await db.query(sql, [full_name, bio, location, avatar, phone, userId]);
         return res.json({ success: true, message: "Profile updated successfully" });
     } catch (err) {
@@ -222,7 +242,8 @@ app.put("/api/users/me", verifyToken, async (req, res) => {
     }
 });
 
-// SKILL MANAGEMENT 
+// ====================== SKILL MANAGEMENT ======================
+
 // Add Skill by Provider
 app.post("/api/users/skills", verifyToken, async (req, res) => {
     const userId = req.userId;
@@ -252,7 +273,7 @@ app.post("/api/users/skills", verifyToken, async (req, res) => {
     }
 });
 
-// Get skills for the logged-in provider
+// Get skills for the logged-in provider (their own dashboard)
 app.get("/api/users/skills", verifyToken, async (req, res) => {
     const userId = req.userId;
     const sql = `SELECT * FROM skills WHERE provider_id = ? ORDER BY created_at DESC`;
@@ -265,12 +286,30 @@ app.get("/api/users/skills", verifyToken, async (req, res) => {
     }
 });
 
+// Public route — anyone can view a specific provider's active skills
+app.get("/api/users/:id/skills", async (req, res) => {
+    const providerId = req.params.id;
+    const sql = `
+        SELECT skill_id, skill_name, category, description, skill_level, availability
+        FROM skills 
+        WHERE provider_id = ? AND status = 'active'
+        ORDER BY created_at DESC
+    `;
+    try {
+        const [results] = await db.query(sql, [providerId]);
+        return res.json({ success: true, skills: results });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: "Failed to fetch skills" });
+    }
+});
+
 // Get All Active Skills for "Find Skills" Page
 app.get("/api/skills", async (req, res) => {
     const sql = `
         SELECT s.skill_id, s.skill_name, s.category, s.description, 
                s.skill_level, s.price_per_session, s.location, s.availability,
-               u.full_name as provider_name, u.avatar, u.user_id as provider_id
+               u.full_name as provider_name, u.avatar, u.user_id as provider_id,
+               u.bio as provider_bio, u.rating, u.total_reviews
         FROM skills s
         JOIN users u ON s.provider_id = u.user_id
         WHERE s.status = 'active'

@@ -1,3 +1,16 @@
+// FIX: Added initialization guard to guarantee window.api availability regardless of script load order or path errors
+if (!window.api) {
+    window.api = {
+        async register(userData) {
+            const response = await fetch('http://localhost:5000/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+            return await response.json();
+        }
+    };
+}
 const form = document.getElementById("signupForm");
 const fullname = document.getElementById("fullname");
 const email = document.getElementById("email");
@@ -36,6 +49,7 @@ if (form) {
       showError(email, "Enter valid email address");
       valid = false;
     }
+
 
     const phonePattern = /^[0-9]{10}$/;
     if (!phone.value.match(phonePattern)) {
