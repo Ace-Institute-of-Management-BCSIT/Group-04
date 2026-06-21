@@ -224,7 +224,7 @@ app.put("/api/users/me", verifyToken, async (req, res) => {
 
 // SKILL MANAGEMENT 
 // Add Skill by Provider
-app.post("/api/users/skills", verifyToken, (req, res) => {
+app.post("/api/users/skills", verifyToken, async (req, res) => {
     const userId = req.userId;
     const { skill_name, skill_level, category, description, price_per_session, availability } = req.body;
 
@@ -235,25 +235,38 @@ app.post("/api/users/skills", verifyToken, (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, 'Kathmandu', ?)
     `;
 
-    db.query(sql, [
-        userId, 
-        skill_name, 
-        category || 'General', 
-        description, 
-        skill_level || 'Intermediate',
-        price_per_session || 0,
-        availability || 'Flexible'
-    ], (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ success: false, message: "Failed to add skill" });
-        }
-        res.json({ success: true, message: "Skill added successfully!" });
-    });
+    try {
+        await db.query(sql, [
+            userId,
+            skill_name,
+            category || 'General',
+            description,
+            skill_level || 'Intermediate',
+            price_per_session || 0,
+            availability || 'Flexible'
+        ]);
+        return res.json({ success: true, message: "Skill added successfully!" });
+    } catch (err) {
+        console.error("Add Skill Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to add skill" });
+    }
+});
+
+// Get skills for the logged-in provider
+app.get("/api/users/skills", verifyToken, async (req, res) => {
+    const userId = req.userId;
+    const sql = `SELECT * FROM skills WHERE provider_id = ? ORDER BY created_at DESC`;
+    try {
+        const [results] = await db.query(sql, [userId]);
+        return res.json({ success: true, skills: results });
+    } catch (err) {
+        console.error("Get Skills Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to fetch skills" });
+    }
 });
 
 // Get All Active Skills for "Find Skills" Page
-app.get("/api/skills", (req, res) => {
+app.get("/api/skills", async (req, res) => {
     const sql = `
         SELECT s.skill_id, s.skill_name, s.category, s.description, 
                s.skill_level, s.price_per_session, s.location, s.availability,
@@ -264,14 +277,12 @@ app.get("/api/skills", (req, res) => {
         ORDER BY s.created_at DESC
     `;
 
-    db.query(sql, (err, results) => {
-        if (err) return res.status(500).json({ success: false, message: "Database error" });
-        
-        res.json({
-            success: true,
-            skills: results
-        });
-    });
+    try {
+        const [results] = await db.query(sql);
+        return res.json({ success: true, skills: results });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: "Database error" });
+    }
 });
 
 app.listen(PORT, () => {
