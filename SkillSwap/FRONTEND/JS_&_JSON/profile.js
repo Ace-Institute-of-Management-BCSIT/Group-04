@@ -10,7 +10,7 @@ async function loadMyProfile() {
         const response = await window.api.getCurrentUser();
         
         if (!response.success) {
-            container.innerHTML = `<div style="color:red; padding:40px; text-align:center;">
+            container.innerHTML = `<div style="color:#e74c3c; padding:40px; text-align:center;">
                 <h3>⚠️ Error Loading Profile</h3>
                 <p>${response.message || 'Please try again'}</p>
             </div>`;
@@ -28,17 +28,17 @@ async function loadMyProfile() {
         container.innerHTML = `
             <div class="profile-dashboard-layout" style="display: flex; gap: 30px; margin-top: 30px; flex-wrap: wrap;">
                 
-                <div class="profile-sidebar-card" style="flex: 1; min-width: 300px; background: var(--card-bg, #ffffff); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center;">
-                    <div class="avatar-container" style="margin-bottom: 15px; position:relative; background: #f1f5f9; width: 130px; height: 130px; border-radius: 50%; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; border: 5px solid #2ecc71; overflow: hidden;">
+                <div class="profile-sidebar-card" style="flex: 1; min-width: 300px; background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 12px; box-shadow: var(--shadow); text-align: center;">
+                    <div class="avatar-container" style="margin-bottom: 15px; position:relative; background: var(--secondary); width: 130px; height: 130px; border-radius: 50%; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; border: 5px solid var(--primary); overflow: hidden;">
                         <img id="profileAvatarDisplay" src="${userAvatar}" alt="Avatar" 
                              style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
-                    <h2 style="margin: 10px 0 5px 0; font-size: 1.6rem;">${user.name}</h2>
-                    <span style="background: #2ecc71; color: white; padding: 5px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                    <h2 style="margin: 10px 0 5px 0; font-size: 1.6rem; color: var(--foreground);">${user.name}</h2>
+                    <span style="background: var(--primary); color: white; padding: 5px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
                         ${user.role ? user.role.toUpperCase() : 'MEMBER'}
                     </span>
-                    <p style="font-size: 0.9rem; color: #7f8c8d; margin: 15px 0 5px 0;"><i class="fa-regular fa-calendar"></i> Joined ${user.joined}</p>
-                    <p style="font-size: 0.9rem; color: #7f8c8d; margin: 5px 0 15px 0;"><i class="fa-solid fa-phone"></i> ${user.phone || 'No phone added'}</p>
+                    <p style="font-size: 0.9rem; color: var(--muted-foreground); margin: 15px 0 5px 0;"><i class="fa-regular fa-calendar"></i> Joined ${user.joined}</p>
+                    <p style="font-size: 0.9rem; color: var(--muted-foreground); margin: 5px 0 15px 0;"><i class="fa-solid fa-phone"></i> ${user.phone || 'No phone added'}</p>
                     
                     <button id="openEditModalBtn" style="width: 100%; background: #3498db; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; margin-top: 15px;">
                         Edit Profile
@@ -47,49 +47,49 @@ async function loadMyProfile() {
 
                 <div class="profile-main-panels" style="flex: 2; min-width: 320px; display: flex; flex-direction: column; gap: 20px;">
                     
-                    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-                        <h3>Biography</h3>
-                        <p style="color: #555; line-height: 1.6;">${user.bio || 'No bio added yet.'}</p>
+                    <div style="background: var(--card); border: 1px solid var(--border); padding: 25px; border-radius: 12px; box-shadow: var(--shadow);">
+                        <h3 style="color: var(--foreground);">Biography</h3>
+                        <p style="color: var(--muted-foreground); line-height: 1.6;">${user.bio || 'No bio added yet.'}</p>
                     </div>
 
                     ${user.role === 'Skill Provider' || user.role === 'skill-provider' ? `
-                    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                    <div style="background: var(--card); border: 1px solid var(--border); padding: 25px; border-radius: 12px; box-shadow: var(--shadow);">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-                            <h3>My Skills</h3>
+                            <h3 style="color: var(--foreground);">My Skills</h3>
                             <button id="addSkillBtn" style="background:#2ecc71;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;">+ Add Skill</button>
                         </div>
-                        <div id="skillsList">No skills added yet.</div>
+                        <div id="skillsList" style="color: var(--muted-foreground);">No skills added yet.</div>
                     </div>` : ''}
                 </div>
             </div>
 
             <div id="editProfileModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; padding: 15px;">
-                <div style="background: white; width: 100%; max-width: 500px; border-radius: 12px; padding: 25px; box-shadow: 0 5px 25px rgba(0,0,0,0.2);">
-                    <h3 style="margin-top: 0; margin-bottom: 20px;">Edit Profile</h3>
+                <div style="background: var(--card); border: 1px solid var(--border); width: 100%; max-width: 500px; border-radius: 12px; padding: 25px; box-shadow: var(--shadow);">
+                    <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--foreground);">Edit Profile</h3>
                     <form id="editProfileForm">
                         <div style="margin-bottom: 15px;">
-                            <label style="display:block; margin-bottom:5px; font-weight:600;">Full Name</label>
-                            <input type="text" id="inputName" value="${user.name}" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px;">
+                            <label style="display:block; margin-bottom:5px; font-weight:600; color: var(--foreground);">Full Name</label>
+                            <input type="text" id="inputName" value="${user.name}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; background: var(--background); color: var(--foreground); box-sizing: border-box;">
                         </div>
                         <div style="margin-bottom: 15px;">
-                            <label style="display:block; margin-bottom:5px; font-weight:600;">Phone Number</label>
-                            <input type="text" id="inputPhone" value="${user.phone || ''}" placeholder="e.g. +1 555-0199" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px;">
+                            <label style="display:block; margin-bottom:5px; font-weight:600; color: var(--foreground);">Phone Number</label>
+                            <input type="text" id="inputPhone" value="${user.phone || ''}" placeholder="e.g. +1 555-0199" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; background: var(--background); color: var(--foreground); box-sizing: border-box;">
                         </div>
                         <div style="margin-bottom: 15px;">
-                            <label style="display:block; margin-bottom:5px; font-weight:600;">Location</label>
-                            <input type="text" id="inputLocation" value="${user.location || ''}" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px;">
+                            <label style="display:block; margin-bottom:5px; font-weight:600; color: var(--foreground);">Location</label>
+                            <input type="text" id="inputLocation" value="${user.location || ''}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; background: var(--background); color: var(--foreground); box-sizing: border-box;">
                         </div>
                         <div style="margin-bottom: 15px;">
-                            <label style="display:block; margin-bottom:5px; font-weight:600;">Profile Picture</label>
-                            <input type="file" id="inputAvatarFile" accept="image/*" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
+                            <label style="display:block; margin-bottom:5px; font-weight:600; color: var(--foreground);">Profile Picture</label>
+                            <input type="file" id="inputAvatarFile" accept="image/*" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background: var(--background); color: var(--foreground); box-sizing: border-box;">
                             <input type="hidden" id="currentAvatarData" value="${user.avatar || ''}">
                         </div>
                         <div style="margin-bottom: 20px;">
-                            <label style="display:block; margin-bottom:5px; font-weight:600;">Bio</label>
-                            <textarea id="inputBio" rows="4" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px;">${user.bio || ''}</textarea>
+                            <label style="display:block; margin-bottom:5px; font-weight:600; color: var(--foreground);">Bio</label>
+                            <textarea id="inputBio" rows="4" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; background: var(--background); color: var(--foreground); box-sizing: border-box;">${user.bio || ''}</textarea>
                         </div>
                         <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                            <button type="button" id="closeEditModalBtn" style="background:#bdc3c7; color:white; border:none; padding:10px 18px; border-radius:6px; cursor:pointer;">Cancel</button>
+                            <button type="button" id="closeEditModalBtn" style="background:var(--secondary); color: var(--foreground); border:none; padding:10px 18px; border-radius:6px; cursor:pointer;">Cancel</button>
                             <button type="submit" style="background:#2ecc71; color:white; border:none; padding:10px 18px; border-radius:6px; cursor:pointer;">Save Changes</button>
                         </div>
                     </form>
@@ -104,7 +104,7 @@ async function loadMyProfile() {
 
     } catch (err) {
         console.error(err);
-        container.innerHTML = `<div style="color:red;padding:40px;text-align:center;">Failed to load profile.</div>`;
+        container.innerHTML = `<div style="color:#e74c3c;padding:40px;text-align:center;">Failed to load profile.</div>`;
     }
 }
 
@@ -118,39 +118,39 @@ function bindAddSkillButton() {
         const modalHTML = `
         <div id="addSkillModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
              background:rgba(0,0,0,0.5); z-index:1001; justify-content:center; align-items:center; padding:15px;">
-            <div style="background:white; width:100%; max-width:460px; border-radius:16px; padding:30px;
-                        box-shadow: 0 8px 32px rgba(0,0,0,0.25); position:relative;">
+            <div style="background:var(--card); border: 1px solid var(--border); width:100%; max-width:460px; border-radius:16px; padding:30px;
+                        box-shadow: var(--shadow); position:relative;">
                 
                 <button id="closeAddSkillModal" style="position:absolute; top:14px; right:16px; background:none;
-                        border:none; font-size:1.4rem; cursor:pointer; color:#7f8c8d; line-height:1;">×</button>
+                        border:none; font-size:1.4rem; cursor:pointer; color:var(--muted-foreground); line-height:1;">×</button>
                 
-                <h3 style="margin:0 0 6px 0; font-size:1.4rem;">Add a New Skill</h3>
-                <p style="margin:0 0 22px 0; color:#7f8c8d; font-size:0.9rem;">
+                <h3 style="margin:0 0 6px 0; font-size:1.4rem; color: var(--foreground);">Add a New Skill</h3>
+                <p style="margin:0 0 22px 0; color:var(--muted-foreground); font-size:0.9rem;">
                     Share what you can offer to the SkillSwap community.
                 </p>
 
                 <div style="margin-bottom:15px;">
-                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">
                         Skill Name <span style="color:#e74c3c;">*</span>
                     </label>
                     <input type="text" id="skillNameInput" placeholder="e.g. Web Development, Graphic Design…"
-                        style="width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px;
-                               font-size:0.95rem; box-sizing:border-box; outline:none;
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px;
+                               font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);
                                transition: border-color 0.2s;"
                         onfocus="this.style.borderColor='#2ecc71'"
-                        onblur="this.style.borderColor='#ddd'">
+                        onblur="this.style.borderColor='var(--border)'">
                 </div>
 
                 <div style="margin-bottom:15px;">
-                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">
                         Proficiency Level
                     </label>
                     <select id="skillLevelInput"
-                        style="width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px;
-                               font-size:0.95rem; box-sizing:border-box; background:white; outline:none;
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px;
+                               font-size:0.95rem; box-sizing:border-box; background:var(--background); color: var(--foreground); outline:none;
                                cursor:pointer; transition: border-color 0.2s;"
                         onfocus="this.style.borderColor='#2ecc71'"
-                        onblur="this.style.borderColor='#ddd'">
+                        onblur="this.style.borderColor='var(--border)'">
                         <option value="Beginner">🌱 Beginner</option>
                         <option value="Intermediate" selected>⚡ Intermediate</option>
                         <option value="Advanced">🔥 Advanced</option>
@@ -159,16 +159,16 @@ function bindAddSkillButton() {
                 </div>
 
                 <div style="margin-bottom:22px;">
-                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">
                         Short Description
                     </label>
                     <textarea id="skillDescInput" rows="3"
                         placeholder="Briefly describe your experience with this skill…"
-                        style="width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px;
-                               font-size:0.95rem; box-sizing:border-box; resize:vertical; outline:none;
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px;
+                               font-size:0.95rem; box-sizing:border-box; resize:vertical; outline:none; background: var(--background); color: var(--foreground);
                                transition: border-color 0.2s;"
                         onfocus="this.style.borderColor='#2ecc71'"
-                        onblur="this.style.borderColor='#ddd'"></textarea>
+                        onblur="this.style.borderColor='var(--border)'"></textarea>
                 </div>
 
                 <div id="addSkillError" style="display:none; color:#e74c3c; font-size:0.85rem;
@@ -176,7 +176,7 @@ function bindAddSkillButton() {
 
                 <div style="display:flex; gap:10px; justify-content:flex-end;">
                     <button id="cancelAddSkillBtn"
-                        style="background:#f1f3f5; color:#555; border:none; padding:10px 20px;
+                        style="background:var(--secondary); color:var(--foreground); border:none; padding:10px 20px;
                                border-radius:8px; cursor:pointer; font-weight:600; font-size:0.9rem;">
                         Cancel
                     </button>
@@ -332,19 +332,19 @@ async function loadMySkills() {
 
         if (data.success && data.skills && data.skills.length > 0) {
             skillsList.innerHTML = data.skills.map(skill => `
-                <div style="padding:14px 0; border-bottom:1px solid #f0f0f0; display:flex; justify-content:space-between; align-items:flex-start;">
+                <div style="padding:14px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start;">
                     <div>
-                        <strong style="font-size:1rem;">${skill.skill_name}</strong>
+                        <strong style="font-size:1rem; color: var(--foreground);">${skill.skill_name}</strong>
                         <span style="margin-left:10px; background:#e8f8f0; color:#2ecc71; padding:2px 10px;
                               border-radius:20px; font-size:0.78rem; font-weight:600;">
                             ${skill.skill_level}
                         </span>
-                        <p style="margin:5px 0 0 0; color:#7f8c8d; font-size:0.88rem;">${skill.description || ''}</p>
+                        <p style="margin:5px 0 0 0; color:var(--muted-foreground); font-size:0.88rem;">${skill.description || ''}</p>
                     </div>
                 </div>
             `).join('');
         } else {
-            skillsList.innerHTML = '<p style="color:#7f8c8d;">No skills added yet.</p>';
+            skillsList.innerHTML = '<p style="color:var(--muted-foreground);">No skills added yet.</p>';
         }
     } catch (e) {
         skillsList.innerHTML = '<p style="color:#e74c3c;">Failed to load skills.</p>';
