@@ -1,0 +1,96 @@
+/* FRONTEND/CSS/profile.css - Specific improvements for Profile Page */
+
+.main-content {
+    margin-top: 100px;   /* Increased to avoid navbar overlap */
+    padding: 20px 0 60px;
+}
+
+.profile-header {
+    margin-top: 20px;
+    padding: 40px;
+    background: var(--card);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+
+.profile-top {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.avatar-large {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 6px solid var(--primary);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-info h1 {
+    margin-bottom: 8px;
+    font-size: 2.2rem;
+}
+
+.profile-meta {
+    display: flex;
+    gap: 20px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.bio {
+    line-height: 1.7;
+    color: var(--muted);
+    font-size: 1.02rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-top: 30px;
+}
+
+.stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+}
+
+.add-skill-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.skill-item {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 900px) {
+    .profile-top {
+        flex-direction: column;
+        text-align: center;
+    }
+    .main-content {
+        margin-top: 80px;
+    }
+}

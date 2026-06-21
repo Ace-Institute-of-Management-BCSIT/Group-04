@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <link rel="stylesheet" href="../CSS/message.css">
+    <link rel="stylesheet" href="../CSS/style.css">
 </head>
 <body>
     <header class="header glass">
@@ -58,22 +59,37 @@
             </div>
         </div>
 
-        <div class="container">
-            <div class="content-section">
-                <h2>Your Inbox</h2>
-                <p>This page is ready for direct messaging between SkillSwap members. You can open a chat, review requests, and follow up on skill exchanges here.</p>
+        <div class="messages-container">
+            <!-- Chat Sidebar -->
+            <div class="chat-sidebar card">
+                <div class="sidebar-header">
+                    <h3>Inbox</h3>
+                    <span class="new-chat-btn">+ New Chat</span>
+                </div>
+                <div class="chat-list" id="chatList"></div>
             </div>
 
-            <div class="grid-2">
-                <div class="card hover-lift">
-                    <div class="card-icon gradient-primary"><i class="fa-regular fa-comments"></i></div>
-                    <h3>Conversation Threads</h3>
-                    <p>View active chats, reply to requests, and keep your exchanges organized.</p>
+            <!-- Main Chat Area -->
+            <div class="chat-main card">
+                <div class="chat-header" id="chatHeader">
+                    <div class="chat-user-info">
+                        <div class="chat-avatar" id="chatAvatar">👤</div>
+                        <div>
+                            <h3 id="chatName">Select a conversation</h3>
+                            <p id="chatStatus" class="status">Online</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="card hover-lift">
-                    <div class="card-icon gradient-secondary"><i class="fa-regular fa-bell"></i></div>
-                    <h3>Notifications</h3>
-                    <p>Stay updated when someone messages you or accepts a skill exchange request.</p>
+
+                <div class="messages-area" id="messagesArea">
+                    <!-- Messages loaded by JS -->
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="chat-input">
+                        <input type="text" id="messageInput" placeholder="Type a message..." />
+                        <button class="send-btn" id="sendBtn">➤</button>
+                    </div>
                 </div>
             </div>
         </div>
