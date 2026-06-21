@@ -1,109 +1,151 @@
 // FRONTEND/JS_&_JSON/message.js
 
+const API_BASE = "http://localhost:5000";
+const token = localStorage.getItem('token');
+
+let currentUser = null;
 let currentChatId = null;
-let currentUser = {
-    id: 1,
-    name: "Suresh Shrestha",
-    role: "skill-provider"
-};
+let conversations = [];
+let socket = null;
 
-// Mock contacts (your friends)
-const contacts = [
-    { id: 2, name: "Krish Shrestha", avatar: "🎸", role: "skill-seeker" },
-    { id: 3, name: "Grishma Adhikari", avatar: "🧘", role: "skill-provider" },
-    { id: 4, name: "Aisha Patel", avatar: "📊", role: "skill-seeker" }
-];
-
-// Load messages from localStorage (shared on same browser, but we can simulate)
-function getMessages(chatId) {
-    const key = `chat_${chatId}`;
-    return JSON.parse(localStorage.getItem(key) || '[]');
-}
-
-function saveMessage(chatId, message, isSent) {
-    const key = `chat_${chatId}`;
-    let messages = getMessages(chatId);
-    messages.push({
-        text: message,
-        isSent: isSent,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+async function loadCurrentUser() {
+    const res = await fetch(`${API_BASE}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
     });
-    localStorage.setItem(key, JSON.stringify(messages));
+    const data = await res.json();
+    if (data.success) currentUser = data.user;
 }
 
-function loadChatList() {
+async function loadConversations() {
+    const res = await fetch(`${API_BASE}/api/messages/conversations`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    conversations = data.success ? data.conversations : [];
+}
+
+// If we arrived via ?to=<id> and there's no existing conversation yet,
+// pull that person's basic info so they still show up in the sidebar.
+async function ensureChatPartner(id) {
+    if (conversations.some(c => c.user_id == id)) return;
+
+    const res = await fetch(`${API_BASE}/api/users/profile/${id}`);
+    const data = await res.json();
+    if (data.success) {
+        conversations.unshift({
+            user_id: data.user.id,
+            full_name: data.user.name,
+            avatar: data.user.avatar,
+            last_message: "Tap to start chatting",
+            last_time: null
+        });
+    }
+}
+
+function renderChatList() {
     const chatList = document.getElementById('chatList');
-    chatList.innerHTML = contacts.map(contact => `
-        <div class="chat-item ${currentChatId === contact.id ? 'active' : ''}" data-id="${contact.id}">
-            <div class="chat-avatar">${contact.avatar}</div>
+    chatList.innerHTML = conversations.map(c => `
+        <div class="chat-item ${currentChatId == c.user_id ? 'active' : ''}" data-id="${c.user_id}">
+            <div class="chat-avatar">${c.avatar ? `<img src="${c.avatar}" alt="">` : '👤'}</div>
             <div class="chat-info">
-                <h4>${contact.name}</h4>
-                <p>Tap to start chatting</p>
+                <h4>${c.full_name}</h4>
+                <p>${c.last_message || 'Tap to start chatting'}</p>
             </div>
         </div>
     `).join('');
 
     document.querySelectorAll('.chat-item').forEach(item => {
-        item.addEventListener('click', () => {
-            currentChatId = parseInt(item.dataset.id);
-            loadSelectedChat();
-            loadChatList();
-        });
+        item.addEventListener('click', () => openChat(parseInt(item.dataset.id)));
     });
 }
 
-function loadSelectedChat() {
-    const contact = contacts.find(c => c.id === currentChatId);
-    if (!contact) return;
-
-    document.getElementById('chatName').textContent = contact.name;
-    document.getElementById('chatAvatar').textContent = contact.avatar;
-
+function renderMessages(messages) {
     const messagesArea = document.getElementById('messagesArea');
-    const messages = getMessages(currentChatId);
-
-    messagesArea.innerHTML = messages.map(msg => `
-        <div class="message ${msg.isSent ? 'sent' : 'received'}">
-            <p>${msg.text}</p>
-            <small class="message-time">${msg.time}</small>
+    messagesArea.innerHTML = messages.map(m => `
+        <div class="message ${m.sender_id == currentUser.id ? 'sent' : 'received'}">
+            <p>${m.message_text}</p>
+            <small class="message-time">${new Date(m.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
         </div>
     `).join('');
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+}
 
+async function openChat(otherUserId) {
+    currentChatId = otherUserId;
+
+    const partner = conversations.find(c => c.user_id == otherUserId);
+    document.getElementById('chatName').textContent = partner ? partner.full_name : 'Chat';
+    document.getElementById('chatAvatar').textContent = '👤';
+
+    renderChatList();
+
+    const res = await fetch(`${API_BASE}/api/messages/${otherUserId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    renderMessages(data.success ? data.messages : []);
+}
+
+function appendIfRelevant(msg) {
+    // Update the relevant sidebar preview regardless of which chat is open
+    const otherId = msg.sender_id == currentUser.id ? msg.receiver_id : msg.sender_id;
+    const convo = conversations.find(c => c.user_id == otherId);
+    if (convo) {
+        convo.last_message = msg.message_text;
+        convo.last_time = msg.sent_at;
+    }
+    renderChatList();
+
+    if (otherId != currentChatId) return; // message belongs to a different chat
+
+    const messagesArea = document.getElementById('messagesArea');
+    const isSent = msg.sender_id == currentUser.id;
+    messagesArea.insertAdjacentHTML('beforeend', `
+        <div class="message ${isSent ? 'sent' : 'received'}">
+            <p>${msg.message_text}</p>
+            <small class="message-time">${new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+        </div>
+    `);
     messagesArea.scrollTop = messagesArea.scrollHeight;
 }
 
 function sendMessage() {
     const input = document.getElementById('messageInput');
     const text = input.value.trim();
+    if (!text || !currentChatId || !socket) return;
 
-    if (!text || !currentChatId) return;
-
-    saveMessage(currentChatId, text, true);
-    loadSelectedChat();
+    socket.emit("send_message", { receiverId: currentChatId, message: text });
     input.value = '';
-
-    // Simulate reply from other user
-    setTimeout(() => {
-        const replies = ["Got it!", "When are you free?", "Sounds good 👍", "Let's do it!"];
-        const replyText = replies[Math.floor(Math.random() * replies.length)];
-        saveMessage(currentChatId, replyText, false);
-        loadSelectedChat();
-    }, 700);
 }
 
-function initMessages() {
-    loadChatList();
+async function initMessages() {
+    if (!token) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    await loadCurrentUser();
+    await loadConversations();
+
+    socket = io(API_BASE, { auth: { token } });
+    socket.on("receive_message", appendIfRelevant);
+    socket.on("connect_error", (err) => console.error("Socket auth failed:", err.message));
+
+    const params = new URLSearchParams(window.location.search);
+    const toId = params.get('to');
+
+    if (toId) {
+        await ensureChatPartner(toId);
+        openChat(parseInt(toId));
+    } else {
+        renderChatList();
+        if (conversations.length > 0) openChat(conversations[0].user_id);
+    }
 
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
     document.getElementById('messageInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
-
-    // Auto open first chat
-    if (contacts.length > 0) {
-        currentChatId = contacts[0].id;
-        loadSelectedChat();
-    }
 }
 
 window.addEventListener('DOMContentLoaded', initMessages);

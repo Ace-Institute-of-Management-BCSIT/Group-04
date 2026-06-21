@@ -108,9 +108,9 @@ async function loadUserProfile() {
 
         setupTabs();
 
-        document.getElementById('sendMessageBtn').addEventListener('click', () => {
-            window.location.href = `chat.html?user=${user.id}`;
-        });
+       document.getElementById('sendMessageBtn').addEventListener('click', () => {
+    window.location.href = `message.html?to=${user.id}`;  // ✅
+});
 
     } catch (error) {
         console.error("Failed to load profile:", error);

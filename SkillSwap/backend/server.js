@@ -24,27 +24,61 @@ const PORT = 5000;
 const JWT_SECRET = "skillswap_jwt_secret_key_2026_change_in_production";
 
 // ====================== SOCKET.IO REAL-TIME CHAT ======================
+
+// Authenticate every socket connection using the same JWT used for REST calls
+io.use((socket, next) => {
+    const token = socket.handshake.auth?.token;
+    if (!token) return next(new Error("Authentication required"));
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        socket.userId = decoded.userId;
+        next();
+    } catch (err) {
+        next(new Error("Invalid or expired token"));
+    }
+});
+
 io.on("connection", (socket) => {
-    console.log("User connected:", socket.id);
+    console.log(`User ${socket.userId} connected (${socket.id})`);
 
-    socket.on("join_chat", (chatId) => {
-        socket.join(`chat_${chatId}`);
-        console.log(`User ${socket.id} joined chat ${chatId}`);
-    });
+    // Each user has a permanent personal room. Anyone messaging them
+    // emits into this room, so it doesn't matter which chat window
+    // (if any) they currently have open.
+    socket.join(`user_${socket.userId}`);
 
-    socket.on("send_message", (data) => {
-        const { chatId, message, senderName } = data;
+    socket.on("send_message", async (data) => {
+        const { receiverId, message } = data;
+        if (!receiverId || !message || !message.trim()) return;
 
-        io.to(`chat_${chatId}`).emit("receive_message", {
-            message,
-            senderName,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            socketId: socket.id
-        });
+        const sql = `
+            INSERT INTO messages (sender_id, receiver_id, message_text)
+            VALUES (?, ?, ?)
+        `;
+
+        try {
+            const [result] = await db.query(sql, [socket.userId, receiverId, message.trim()]);
+
+            const payload = {
+                message_id: result.insertId,
+                sender_id: socket.userId,
+                receiver_id: receiverId,
+                message_text: message.trim(),
+                sent_at: new Date().toISOString()
+            };
+
+            // Deliver to the recipient if they're online, and echo back
+            // to the sender (e.g. if they have multiple tabs open)
+            io.to(`user_${receiverId}`).emit("receive_message", payload);
+            io.to(`user_${socket.userId}`).emit("receive_message", payload);
+        } catch (err) {
+            console.error("Send Message Error:", err);
+            socket.emit("message_error", { message: "Failed to send message" });
+        }
     });
 
     socket.on("disconnect", () => {
-        console.log("User disconnected:", socket.id);
+        console.log(`User ${socket.userId} disconnected (${socket.id})`);
     });
 });
 
@@ -324,6 +358,59 @@ app.get("/api/skills", async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+// ====================== MESSAGING ROUTES ======================
+
+// List of conversations for the sidebar — one row per person you've
+// exchanged at least one message with, showing the latest message.
+app.get("/api/messages/conversations", verifyToken, async (req, res) => {
+    const userId = req.userId;
+
+    const sql = `
+        SELECT u.user_id, u.full_name, u.avatar,
+               m.message_text AS last_message, m.sent_at AS last_time
+        FROM users u
+        JOIN (
+            SELECT 
+                CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END AS other_id,
+                MAX(message_id) AS last_msg_id
+            FROM messages
+            WHERE sender_id = ? OR receiver_id = ?
+            GROUP BY other_id
+        ) latest ON u.user_id = latest.other_id
+        JOIN messages m ON m.message_id = latest.last_msg_id
+        ORDER BY m.sent_at DESC
+    `;
+
+    try {
+        const [rows] = await db.query(sql, [userId, userId, userId]);
+        return res.json({ success: true, conversations: rows });
+    } catch (err) {
+        console.error("Conversations Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to load conversations" });
+    }
+});
+
+// Full message history with one specific other user
+app.get("/api/messages/:otherUserId", verifyToken, async (req, res) => {
+    const userId = req.userId;
+    const otherUserId = req.params.otherUserId;
+
+    const sql = `
+        SELECT message_id, sender_id, receiver_id, message_text, sent_at
+        FROM messages
+        WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
+        ORDER BY sent_at ASC
+    `;
+
+    try {
+        const [rows] = await db.query(sql, [userId, otherUserId, otherUserId, userId]);
+        return res.json({ success: true, messages: rows });
+    } catch (err) {
+        console.error("Fetch Messages Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to load messages" });
+    }
+});
+
+server.listen(PORT, () => {
     console.log(`✅ SkillSwap Server executing cleanly on http://localhost:${PORT}`);
 });

@@ -99,9 +99,9 @@ document.addEventListener('click', (e) => {
     }
 
     if (e.target.classList.contains('message-btn')) {
-        const userId = e.target.dataset.id;
-        window.location.href = `chat.html?user=${userId}`;
-    }
+    const userId = e.target.dataset.id;
+    window.location.href = `message.html?to=${userId}`;  
+}
 });
 
 function filterUsers() {

@@ -1,6 +1,7 @@
 const AUTH_STORAGE_KEYS = {
     loggedIn: 'skillSwapLoggedIn',
-    userEmail: 'skillSwapUserEmail'
+    userEmail: 'skillSwapUserEmail',
+    token: 'skillSwapToken'
 };
 
 const PUBLIC_PAGES = new Set([
@@ -87,6 +88,7 @@ function bindNavbarHandlers() {
             event.preventDefault();
             localStorage.removeItem(AUTH_STORAGE_KEYS.loggedIn);
             localStorage.removeItem(AUTH_STORAGE_KEYS.userEmail);
+            localStorage.removeItem(AUTH_STORAGE_KEYS.token);
             window.location.href = 'login.html';
             return;
         }
