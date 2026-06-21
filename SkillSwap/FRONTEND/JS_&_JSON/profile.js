@@ -113,7 +113,7 @@ function bindAddSkillButton() {
     const btn = document.getElementById('addSkillBtn');
     if (!btn) return;
 
-    // Inject the Add Skill modal into the page (once)
+    // Inject the Add Skill modal ito the page (once)
     if (!document.getElementById('addSkillModal')) {
         const modalHTML = `
         <div id="addSkillModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
