@@ -75,7 +75,11 @@ async function openChat(otherUserId) {
 
     const partner = conversations.find(c => c.user_id == otherUserId);
     document.getElementById('chatName').textContent = partner ? partner.full_name : 'Chat';
-    document.getElementById('chatAvatar').textContent = '👤';
+    const chatAvatar = document.getElementById('chatAvatar');
+    chatAvatar.innerHTML = (partner && partner.avatar)
+        ? `<img src="${partner.avatar}" alt="">`
+        : '👤';
+
 
     renderChatList();
 
