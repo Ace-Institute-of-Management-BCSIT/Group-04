@@ -129,4 +129,15 @@ function setupTabs() {
     });
 }
 
+document.querySelectorAll('.btn-filter').forEach((button) => {
+    button.addEventListener('click', function () {
+        document.querySelectorAll('.btn-filter').forEach((activeButton) => {
+            activeButton.classList.remove('active');
+        });
+
+        this.classList.add('active');
+    });
+});
+
+
 loadUserProfile();
