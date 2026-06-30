@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const http = require("http");
-const path = require("path"); // Added for static file routing path management
 const { Server } = require("socket.io");
 
 const db = require("./db");
@@ -20,10 +19,6 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-// Serve static frontend files if you want node to deliver pages automatically
-// Replace "../frontend" with your actual path if different
-app.use(express.static(path.join(__dirname, "../frontend")));
 
 const PORT = 5000;
 const JWT_SECRET = "skillswap_jwt_secret_key_2026_change_in_production";
@@ -108,6 +103,27 @@ const verifyToken = (req, res, next) => {
             success: false,
             message: "Invalid or expired token"
         });
+    }
+};
+
+// Middleware to verify an admin JWT token (separate claim: isAdmin)
+const verifyAdminToken = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ success: false, message: "No token provided" });
+    }
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (!decoded.isAdmin) {
+            return res.status(403).json({ success: false, message: "Admin access required" });
+        }
+        req.adminId = decoded.adminId;
+        req.adminUsername = decoded.username;
+        next();
+    } catch (err) {
+        return res.status(401).json({ success: false, message: "Invalid or expired token" });
     }
 };
 
@@ -416,33 +432,130 @@ app.get("/api/messages/:otherUserId", verifyToken, async (req, res) => {
     }
 });
 
-// ====================== ADMIN PANEL LOGINS ======================
+// ====================== ADMIN ROUTES ======================
 
-// Fixed async/await implementation for Admin login
+// Admin Login — matches existing plaintext-password pattern used by user auth
+// (consistent with current codebase; see note about hashing in project follow-ups)
 app.post("/admin/login", async (req, res) => {
     const { username, password } = req.body;
-    const sql = "SELECT * FROM admin WHERE username=? AND password=?";
+
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: "Username and password required" });
+    }
+
+    const sql = `SELECT admin_id, username FROM admin WHERE username = ? AND password = ?`;
 
     try {
         const [rows] = await db.query(sql, [username, password]);
 
-        if (rows.length > 0) {
-            return res.json({
-                success: true,
-                username: rows[0].username
-            });
-        } else {
-            return res.json({
-                success: false,
-                message: "Invalid Admin Credentials"
-            });
+        if (rows.length === 0) {
+            return res.status(401).json({ success: false, message: "Invalid Username or Password" });
         }
+
+        const admin = rows[0];
+
+        const token = jwt.sign(
+            { adminId: admin.admin_id, username: admin.username, isAdmin: true },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        return res.json({
+            success: true,
+            message: "Login Successful",
+            token,
+            username: admin.username
+        });
     } catch (err) {
         console.error("Admin Login Error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Database failure occurred."
+        return res.status(500).json({ success: false, message: "Database failure occurred." });
+    }
+});
+
+// Verify current admin session (used by admin.html on page load)
+app.get("/admin/me", verifyAdminToken, (req, res) => {
+    return res.json({ success: true, username: req.adminUsername });
+});
+
+// Dashboard summary stats — total users, providers, skills, bookings, messages
+app.get("/admin/stats", verifyAdminToken, async (req, res) => {
+    try {
+        const [[userCount]] = await db.query(`SELECT COUNT(*) AS count FROM users`);
+        const [[providerCount]] = await db.query(`SELECT COUNT(*) AS count FROM users WHERE role = 'Skill Provider'`);
+        const [[skillCount]] = await db.query(`SELECT COUNT(*) AS count FROM skills WHERE status = 'active'`);
+        const [[messageCount]] = await db.query(`SELECT COUNT(*) AS count FROM messages`);
+
+        return res.json({
+            success: true,
+            stats: {
+                totalUsers: userCount.count,
+                totalProviders: providerCount.count,
+                activeSkills: skillCount.count,
+                totalMessages: messageCount.count
+            }
         });
+    } catch (err) {
+        console.error("Admin Stats Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to load stats" });
+    }
+});
+
+// List all users for the admin user-management table
+app.get("/admin/users", verifyAdminToken, async (req, res) => {
+    const sql = `
+        SELECT user_id, full_name, email, phone, role, location, joined_date
+        FROM users
+        ORDER BY joined_date DESC
+    `;
+    try {
+        const [rows] = await db.query(sql);
+        return res.json({ success: true, users: rows });
+    } catch (err) {
+        console.error("Admin Users Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to load users" });
+    }
+});
+
+// Delete a user (admin moderation action)
+app.delete("/admin/users/:id", verifyAdminToken, async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query(`DELETE FROM users WHERE user_id = ?`, [id]);
+        return res.json({ success: true, message: "User removed" });
+    } catch (err) {
+        console.error("Admin Delete User Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to delete user. They may have related records (skills, bookings, messages)." });
+    }
+});
+
+// List all active skills for the admin moderation table
+app.get("/admin/skills", verifyAdminToken, async (req, res) => {
+    const sql = `
+        SELECT s.skill_id, s.skill_name, s.category, s.skill_level, s.status,
+               s.price_per_session, s.created_at, u.full_name AS provider_name
+        FROM skills s
+        JOIN users u ON s.provider_id = u.user_id
+        ORDER BY s.created_at DESC
+    `;
+    try {
+        const [rows] = await db.query(sql);
+        return res.json({ success: true, skills: rows });
+    } catch (err) {
+        console.error("Admin Skills Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to load skills" });
+    }
+});
+
+// Deactivate / reactivate a skill listing
+app.put("/admin/skills/:id/status", verifyAdminToken, async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body; // 'active' | 'inactive'
+    try {
+        await db.query(`UPDATE skills SET status = ? WHERE skill_id = ?`, [status, id]);
+        return res.json({ success: true, message: "Skill status updated" });
+    } catch (err) {
+        console.error("Admin Skill Status Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to update skill" });
     }
 });
 

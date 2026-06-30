@@ -1,95 +1,60 @@
-const form=document.getElementById("adminLoginForm");
+const form = document.getElementById("adminLoginForm");
+const username = document.getElementById("username");
+const password = document.getElementById("password");
+const toggle = document.getElementById("togglePassword");
 
-const username=document.getElementById("username");
-
-const password=document.getElementById("password");
-
-const toggle=document.getElementById("togglePassword");
-
-toggle.addEventListener("click",()=>{
-
-if(password.type==="password"){
-
-password.type="text";
-
-toggle.className="fa-regular fa-eye-slash";
-
-}
-
-else{
-
-password.type="password";
-
-toggle.className="fa-regular fa-eye";
-
-}
-
+toggle.addEventListener("click", () => {
+    if (password.type === "password") {
+        password.type = "text";
+        toggle.className = "fa-regular fa-eye-slash";
+    } else {
+        password.type = "password";
+        toggle.className = "fa-regular fa-eye";
+    }
 });
 
-form.addEventListener("submit",async(e)=>{
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-e.preventDefault();
+    document.querySelectorAll(".error").forEach(el => el.innerHTML = "");
 
-document.querySelectorAll(".error").forEach(e=>e.innerHTML="");
+    let valid = true;
 
-let valid=true;
+    if (username.value.trim() === "") {
+        showError(username, "Username required");
+        valid = false;
+    }
 
-if(username.value.trim()==""){
+    if (password.value.length < 4) {
+        showError(password, "Invalid Password");
+        valid = false;
+    }
 
-showError(username,"Username required");
+    if (!valid) return;
 
-valid=false;
+    try {
+        const response = await fetch("http://localhost:5000/admin/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username: username.value.trim(),
+                password: password.value
+            })
+        });
 
-}
+        const data = await response.json();
 
-if(password.value.length<4){
-
-showError(password,"Invalid Password");
-
-valid=false;
-
-}
-
-if(!valid) return;
-
-const response=await fetch("http://localhost:5000/admin/login",{
-
-method:"POST",
-
-headers:{
-
-"Content-Type":"application/json"
-
-},
-
-body:JSON.stringify({
-
-username:username.value,
-
-password:password.value
-
-})
-
-});
-
-const data=await response.json();
-
-if(data.success){
-
-localStorage.setItem("adminLoggedIn","true");
-
-localStorage.setItem("adminName",data.username);
-
-window.location.href="admin.html";
-
-}
-
-else{
-
-alert(data.message);
-
-}
-
+        if (data.success) {
+            localStorage.setItem("adminToken", data.token);
+            localStorage.setItem("adminName", data.username);
+            window.location.href = "admin-dashboard.html";
+        } else {
+            alert(data.message || "Login failed");
+        }
+    } catch (err) {
+        console.error("Admin login error:", err);
+        alert("Network error. Verify your server is running on port 5000.");
+    }
 });
 
 function showError(input, message) {
@@ -98,4 +63,9 @@ function showError(input, message) {
     if (errorSpan) {
         errorSpan.innerHTML = message;
     }
+}
+
+// If already logged in, skip straight to the dashboard
+if (localStorage.getItem("adminToken")) {
+    window.location.href = "admin-dashboard.html";
 }

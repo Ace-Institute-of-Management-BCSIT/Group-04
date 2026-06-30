@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSwap - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+    <link rel="stylesheet" href="../CSS/admin-dashboard.css">
+</head>
+<body>
+
+    <header class="header glass">
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fa-solid fa-star-four-points"></i>
+                <span>SkillSwap</span>
+                <span class="admin-badge">Admin</span>
+            </div>
+
+            <nav class="nav">
+                <a href="#" class="nav-link active" data-section="overview">Overview</a>
+                <a href="#" class="nav-link" data-section="users">Users</a>
+                <a href="#" class="nav-link" data-section="skills">Skills</a>
+            </nav>
+
+            <div class="nav-actions">
+                <span class="admin-name" id="adminName">Admin</span>
+                <button class="btn btn-outline" id="logoutBtn">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+
+            <div class="page-header">
+                <h1 class="gradient-text">Admin Dashboard</h1>
+                <p>Monitor and manage your SkillSwap community</p>
+            </div>
+
+            <!-- ===== OVERVIEW SECTION ===== -->
+            <section id="overview-section" class="dashboard-section active">
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                        <div class="stat-value" id="statUsers">—</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-solid fa-briefcase"></i></div>
+                        <div class="stat-value" id="statProviders">—</div>
+                        <div class="stat-label">Skill Providers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-solid fa-bolt"></i></div>
+                        <div class="stat-value" id="statSkills">—</div>
+                        <div class="stat-label">Active Skills</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-regular fa-message"></i></div>
+                        <div class="stat-value" id="statMessages">—</div>
+                        <div class="stat-label">Messages Sent</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== USERS SECTION ===== -->
+            <section id="users-section" class="dashboard-section">
+                <div class="card table-card">
+                    <div class="table-card-header">
+                        <h3>All Users</h3>
+                        <span class="count-pill" id="usersCount">0</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Role</th>
+                                    <th>Location</th>
+                                    <th>Joined</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr><td colspan="7" class="loading-row">Loading users…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== SKILLS SECTION ===== -->
+            <section id="skills-section" class="dashboard-section">
+                <div class="card table-card">
+                    <div class="table-card-header">
+                        <h3>All Skills</h3>
+                        <span class="count-pill" id="skillsCount">0</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Skill</th>
+                                    <th>Provider</th>
+                                    <th>Category</th>
+                                    <th>Level</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="skillsTableBody">
+                                <tr><td colspan="7" class="loading-row">Loading skills…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="../JS_&_JSON/admin-dashboard.js"></script>
+</body>
+</html>
