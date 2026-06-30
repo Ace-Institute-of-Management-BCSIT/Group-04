@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const http = require("http");
+const path = require("path"); // Added for static file routing path management
 const { Server } = require("socket.io");
 
 const db = require("./db");
@@ -19,6 +20,10 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Serve static frontend files if you want node to deliver pages automatically
+// Replace "../frontend" with your actual path if different
+app.use(express.static(path.join(__dirname, "../frontend")));
 
 const PORT = 5000;
 const JWT_SECRET = "skillswap_jwt_secret_key_2026_change_in_production";
@@ -408,6 +413,36 @@ app.get("/api/messages/:otherUserId", verifyToken, async (req, res) => {
     } catch (err) {
         console.error("Fetch Messages Error:", err);
         return res.status(500).json({ success: false, message: "Failed to load messages" });
+    }
+});
+
+// ====================== ADMIN PANEL LOGINS ======================
+
+// Fixed async/await implementation for Admin login
+app.post("/admin/login", async (req, res) => {
+    const { username, password } = req.body;
+    const sql = "SELECT * FROM admin WHERE username=? AND password=?";
+
+    try {
+        const [rows] = await db.query(sql, [username, password]);
+
+        if (rows.length > 0) {
+            return res.json({
+                success: true,
+                username: rows[0].username
+            });
+        } else {
+            return res.json({
+                success: false,
+                message: "Invalid Admin Credentials"
+            });
+        }
+    } catch (err) {
+        console.error("Admin Login Error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Database failure occurred."
+        });
     }
 });
 

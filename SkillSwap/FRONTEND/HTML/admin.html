@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <title>Admin Login | SkillSwap</title>
+
+    <link rel="stylesheet" href="../CSS/admin-login.css">
+
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <div class="login-card">
+
+        <h1>SkillSwap</h1>
+
+        <h2>Administrator Login</h2>
+
+        <form id="adminLoginForm">
+
+            <div class="input-group">
+
+                <label>Username</label>
+
+                <input
+                type="text"
+                id="username"
+                placeholder="Enter Username">
+
+                <span class="error"></span>
+
+            </div>
+
+            <div class="input-group">
+
+                <label>Password</label>
+
+                <div class="password-box">
+
+                    <input
+                    type="password"
+                    id="password"
+                    placeholder="Enter Password">
+
+                    <i class="fa-regular fa-eye"
+                    id="togglePassword"></i>
+
+                </div>
+
+                <span class="error"></span>
+
+            </div>
+
+            <button type="submit">
+
+                Login
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+ <script src="../JS_&_JSON/admin-login.js"></script>
+
+</body>
+</html>
