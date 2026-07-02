@@ -15,7 +15,6 @@ async function loadUserProfile() {
     container.innerHTML = `<div class="loading">Loading profile...</div>`;
 
     try {
-        // Fetch the profile and that provider's skills in parallel
         const [profileRes, skillsRes] = await Promise.all([
             window.api.getUserProfile(userId),
             window.api.request(`/users/${userId}/skills`)
@@ -31,9 +30,12 @@ async function loadUserProfile() {
         const user = profileRes.user;
         const teaching = (skillsRes.success && skillsRes.skills) ? skillsRes.skills : [];
 
+        // FIX 2: expose skills globally so the request modal dropdown can use them
+        window._profileSkills = teaching;
+
         const avatar = (user.avatar && !user.avatar.includes("pravatar.cc")) ? user.avatar : DEFAULT_AVATAR;
 
-        let html = `
+        container.innerHTML = `
             <div class="profile-header card">
                 <div class="profile-top">
                     <div class="avatar-large">
@@ -42,7 +44,7 @@ async function loadUserProfile() {
                     <div class="profile-info">
                         <h1>${user.name}</h1>
                         <div class="profile-meta">
-                            <span> ${user.location}</span>
+                            <span>${user.location}</span>
                             <span>Joined ${user.joined}</span>
                         </div>
                         <p class="bio">${user.bio}</p>
@@ -104,18 +106,156 @@ async function loadUserProfile() {
             </div>
         `;
 
-        container.innerHTML = html;
-
         setupTabs();
 
-       document.getElementById('sendMessageBtn').addEventListener('click', () => {
-    window.location.href = `message.html?to=${user.id}`;  // ✅
-});
+        // FIX 1: listeners attached AFTER HTML is rendered, inside loadUserProfile
+        document.getElementById('sendMessageBtn').addEventListener('click', () => {
+            window.location.href = `message.html?to=${user.id}`;
+        });
+
+        document.getElementById('requestBtn').addEventListener('click', () => {
+            if (!document.getElementById('requestModal')) {
+                document.body.insertAdjacentHTML('beforeend', `
+                <div id="requestModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                     background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; padding:15px;">
+                    <div style="background:var(--card-bg, #1a1f2e); width:100%; max-width:460px; border-radius:16px;
+                                padding:30px; box-shadow:0 8px 32px rgba(0,0,0,0.4); position:relative;">
+
+                        <button id="closeRequestModal" style="position:absolute; top:14px; right:16px;
+                                background:none; border:none; font-size:1.4rem; cursor:pointer; color:#7f8c8d;">x</button>
+
+                        <h3 style="margin:0 0 6px 0; font-size:1.3rem; color:var(--text, #fff);">Request Skill Exchange</h3>
+                        <p style="margin:0 0 22px 0; color:#7f8c8d; font-size:0.88rem;">
+                            Pick a skill, date, and time. The provider will accept or reject your request.
+                        </p>
+
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color:var(--text,#fff);">
+                                Skill <span style="color:#e74c3c;">*</span>
+                            </label>
+                            <select id="requestSkillSelect"
+                                style="width:100%; padding:10px 12px; border:1px solid #2ecc71; border-radius:8px;
+                                       font-size:0.95rem; background:var(--input-bg,#12172a); color:var(--text,#fff);
+                                       outline:none; cursor:pointer; box-sizing:border-box;">
+                                <option value="">Select a skill</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color:var(--text,#fff);">
+                                Date <span style="color:#e74c3c;">*</span>
+                            </label>
+                            <input type="date" id="requestDate"
+                                style="width:100%; padding:10px 12px; border:1px solid #444; border-radius:8px;
+                                       font-size:0.95rem; background:var(--input-bg,#12172a); color:var(--text,#fff);
+                                       outline:none; box-sizing:border-box;">
+                        </div>
+
+                        <div style="margin-bottom:22px;">
+                            <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color:var(--text,#fff);">
+                                Time <span style="color:#e74c3c;">*</span>
+                            </label>
+                            <input type="time" id="requestTime"
+                                style="width:100%; padding:10px 12px; border:1px solid #444; border-radius:8px;
+                                       font-size:0.95rem; background:var(--input-bg,#12172a); color:var(--text,#fff);
+                                       outline:none; box-sizing:border-box;">
+                        </div>
+
+                        <div id="requestError" style="display:none; color:#e74c3c; font-size:0.85rem;
+                             margin-bottom:12px; padding:8px 12px; background:rgba(231,76,60,0.1); border-radius:6px;"></div>
+
+                        <div style="display:flex; gap:10px; justify-content:flex-end;">
+                            <button id="cancelRequestBtn"
+                                style="background:#2a2f3e; color:#aaa; border:none; padding:10px 20px;
+                                       border-radius:8px; cursor:pointer; font-weight:600; font-size:0.9rem;">
+                                Cancel
+                            </button>
+                            <button id="submitRequestBtn"
+                                style="background:#2ecc71; color:white; border:none; padding:10px 22px;
+                                       border-radius:8px; cursor:pointer; font-weight:600; font-size:0.9rem;">
+                                Send Request
+                            </button>
+                        </div>
+                    </div>
+                </div>`);
+
+                document.getElementById('closeRequestModal').addEventListener('click', closeRequestModal);
+                document.getElementById('cancelRequestBtn').addEventListener('click', closeRequestModal);
+                document.getElementById('requestModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'requestModal') closeRequestModal();
+                });
+
+                document.getElementById('submitRequestBtn').addEventListener('click', async () => {
+                    const skillId   = document.getElementById('requestSkillSelect').value;
+                    const date      = document.getElementById('requestDate').value;
+                    const time      = document.getElementById('requestTime').value;
+                    const errorBox  = document.getElementById('requestError');
+                    const submitBtn = document.getElementById('submitRequestBtn');
+
+                    errorBox.style.display = 'none';
+
+                    if (!skillId || !date || !time) {
+                        errorBox.textContent = 'Please fill in all fields.';
+                        errorBox.style.display = 'block';
+                        return;
+                    }
+
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Sending...';
+
+                    try {
+                        const result = await window.api.request('/bookings', {
+                            method: 'POST',
+                            body: JSON.stringify({ skill_id: skillId, booking_date: date, booking_time: time })
+                        });
+
+                        if (result.success) {
+                            closeRequestModal();
+                            alert('Request sent! The provider will accept or reject it.');
+                        } else {
+                            errorBox.textContent = result.message || 'Failed to send request.';
+                            errorBox.style.display = 'block';
+                        }
+                    } catch (err) {
+                        errorBox.textContent = 'Cannot connect to server.';
+                        errorBox.style.display = 'block';
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Send Request';
+                    }
+                });
+            }
+
+            populateSkillDropdown();
+            openRequestModal();
+        });
 
     } catch (error) {
         console.error("Failed to load profile:", error);
         container.innerHTML = `<div class="card" style="padding:40px;color:red;text-align:center;">Failed to load profile</div>`;
     }
+}
+
+function openRequestModal() {
+    document.getElementById('requestDate').value = '';
+    document.getElementById('requestTime').value = '';
+    document.getElementById('requestError').style.display = 'none';
+    document.getElementById('requestModal').style.display = 'flex';
+}
+
+function closeRequestModal() {
+    document.getElementById('requestModal').style.display = 'none';
+}
+
+function populateSkillDropdown() {
+    const select = document.getElementById('requestSkillSelect');
+    if (!window._profileSkills || window._profileSkills.length === 0) {
+        select.innerHTML = '<option value="">No skills available</option>';
+        return;
+    }
+    select.innerHTML = window._profileSkills.map(s =>
+        `<option value="${s.skill_id}">${s.skill_name} (${s.skill_level})</option>`
+    ).join('');
 }
 
 function setupTabs() {
@@ -129,15 +269,15 @@ function setupTabs() {
     });
 }
 
-document.querySelectorAll('.btn-filter').forEach((button) => {
-    button.addEventListener('click', function () {
-        document.querySelectorAll('.btn-filter').forEach((activeButton) => {
-            activeButton.classList.remove('active');
-        });
+// Theme toggle
+const themeToggle = document.getElementById('themeToggle');
+const html = document.documentElement;
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) html.classList.toggle('dark', savedTheme === 'dark');
 
-        this.classList.add('active');
-    });
+themeToggle.addEventListener('click', () => {
+    html.classList.toggle('dark');
+    localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
 });
-
 
 loadUserProfile();

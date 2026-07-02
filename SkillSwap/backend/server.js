@@ -471,6 +471,110 @@ app.put("/admin/skills/:id/status", verifyAdminToken, async (req, res) => {
     }
 });
 
+// ====================== BOOKING ROUTES ======================
+
+// Seeker sends a booking request
+app.post("/api/bookings", verifyToken, async (req, res) => {
+    const seekerId = req.userId;
+    const { skill_id, booking_date, booking_time } = req.body;
+
+    if (!skill_id || !booking_date || !booking_time) {
+        return res.status(400).json({ success: false, message: "Please fill in all fields." });
+    }
+
+    const sql = `
+        INSERT INTO bookings (seeker_id, skill_id, booking_date, booking_time, status)
+        VALUES (?, ?, ?, ?, 'Pending')
+    `;
+
+    try {
+        await db.query(sql, [seekerId, skill_id, booking_date, booking_time]);
+        return res.json({ success: true, message: "Booking request sent!" });
+    } catch (err) {
+        console.error("Booking Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to send request." });
+    }
+});
+
+// Provider sees incoming booking requests (people requesting their skills)
+app.get("/api/bookings/incoming", verifyToken, async (req, res) => {
+    const providerId = req.userId;
+
+    const sql = `
+        SELECT b.booking_id, b.booking_date, b.booking_time, b.status,
+               s.skill_name,
+               u.full_name AS seeker_name, u.avatar AS seeker_avatar, u.user_id AS seeker_id
+        FROM bookings b
+        JOIN skills s ON b.skill_id = s.skill_id
+        JOIN users u ON b.seeker_id = u.user_id
+        WHERE s.provider_id = ?
+        ORDER BY b.booking_id DESC
+    `;
+
+    try {
+        const [results] = await db.query(sql, [providerId]);
+        return res.json({ success: true, bookings: results });
+    } catch (err) {
+        console.error("Incoming Bookings Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to fetch requests." });
+    }
+});
+
+// Seeker sees their own sent requests
+app.get("/api/bookings/my", verifyToken, async (req, res) => {
+    const seekerId = req.userId;
+
+    const sql = `
+        SELECT b.booking_id, b.booking_date, b.booking_time, b.status,
+               s.skill_name,
+               u.full_name AS provider_name, u.avatar AS provider_avatar, u.user_id AS provider_id
+        FROM bookings b
+        JOIN skills s ON b.skill_id = s.skill_id
+        JOIN users u ON s.provider_id = u.user_id
+        WHERE b.seeker_id = ?
+        ORDER BY b.booking_id DESC
+    `;
+
+    try {
+        const [results] = await db.query(sql, [seekerId]);
+        return res.json({ success: true, bookings: results });
+    } catch (err) {
+        console.error("My Bookings Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to fetch your requests." });
+    }
+});
+
+// Provider accepts or rejects a booking
+app.put("/api/bookings/:id/status", verifyToken, async (req, res) => {
+    const providerId = req.userId;
+    const bookingId = req.params.id;
+    const { status } = req.body; // 'Accepted' or 'Cancelled'
+
+    if (!['Accepted', 'Cancelled'].includes(status)) {
+        return res.status(400).json({ success: false, message: "Invalid status." });
+    }
+
+    // Make sure the booking belongs to one of this provider's skills
+    const sql = `
+        UPDATE bookings b
+        JOIN skills s ON b.skill_id = s.skill_id
+        SET b.status = ?
+        WHERE b.booking_id = ? AND s.provider_id = ?
+    `;
+
+    try {
+        const [result] = await db.query(sql, [status, bookingId, providerId]);
+        if (result.affectedRows === 0) {
+            return res.status(403).json({ success: false, message: "Not authorized or booking not found." });
+        }
+        return res.json({ success: true, message: `Booking ${status}.` });
+    } catch (err) {
+        console.error("Update Booking Status Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to update status." });
+    }
+});
+
+
 server.listen(PORT, () => {
     console.log(`✅ SkillSwap Server executing cleanly on http://localhost:${PORT}`);
 });

@@ -25,6 +25,12 @@ function isLoggedIn() {
 }
 
 function getUserLabel() {
+    const storedName = localStorage.getItem('skillSwapUserName') || '';
+
+    if (storedName) {
+        return storedName;
+    }
+
     const email = localStorage.getItem(AUTH_STORAGE_KEYS.userEmail) || '';
 
     if (!email) {
