@@ -224,7 +224,7 @@ app.put("/api/users/me", verifyToken, async (req, res) => {
     }
 });
 
-// ====================== SKILL MANAGEMENT ======================
+// ====================== SKILL MANAGEMENT =====================
 
 app.post("/api/users/skills", verifyToken, async (req, res) => {
     const userId = req.userId;

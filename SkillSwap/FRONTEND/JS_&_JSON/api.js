@@ -16,7 +16,7 @@ window.api = {
         }
     },
 
-    // Generates request headers dynamically with authorization tokens if present
+    // Generates request headers dynamically with authorization tokens if present.
     getHeaders() {
         const headers = {
             'Content-Type': 'application/json',
