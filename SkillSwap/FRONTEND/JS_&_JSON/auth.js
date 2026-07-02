@@ -86,10 +86,19 @@ function bindNavbarHandlers() {
 
         if (logoutAction) {
             event.preventDefault();
-            localStorage.removeItem(AUTH_STORAGE_KEYS.loggedIn);
-            localStorage.removeItem(AUTH_STORAGE_KEYS.userEmail);
-            localStorage.removeItem(AUTH_STORAGE_KEYS.token);
-            window.location.href = 'login.html';
+            if (window.api && typeof window.api.logoutServer === 'function') {
+                window.api.logoutServer().finally(() => {
+                    localStorage.removeItem(AUTH_STORAGE_KEYS.loggedIn);
+                    localStorage.removeItem(AUTH_STORAGE_KEYS.userEmail);
+                    localStorage.removeItem(AUTH_STORAGE_KEYS.token);
+                    window.location.href = 'login.html';
+                });
+            } else {
+                localStorage.removeItem(AUTH_STORAGE_KEYS.loggedIn);
+                localStorage.removeItem(AUTH_STORAGE_KEYS.userEmail);
+                localStorage.removeItem(AUTH_STORAGE_KEYS.token);
+                window.location.href = 'login.html';
+            }
             return;
         }
 

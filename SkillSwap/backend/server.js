@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
@@ -5,27 +6,29 @@ const http = require("http");
 const { Server } = require("socket.io");
 
 const db = require("./db");
+const authRoutes = require("./routes/auth");
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+    cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-const PORT = 5000;
-const JWT_SECRET = "skillswap_jwt_secret_key_2026_change_in_production";
+const PORT = process.env.PORT || 5000;
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    console.error("❌ Missing JWT_SECRET in .env — refusing to start.");
+    process.exit(1);
+}
 
 // ====================== SOCKET.IO REAL-TIME CHAT ======================
 
-// Authenticate every socket connection using the same JWT used for REST calls
 io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token) return next(new Error("Authentication required"));
@@ -42,9 +45,6 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
     console.log(`User ${socket.userId} connected (${socket.id})`);
 
-    // Each user has a permanent personal room. Anyone messaging them
-    // emits into this room, so it doesn't matter which chat window
-    // (if any) they currently have open.
     socket.join(`user_${socket.userId}`);
 
     socket.on("send_message", async (data) => {
@@ -67,8 +67,6 @@ io.on("connection", (socket) => {
                 sent_at: new Date().toISOString()
             };
 
-            // Deliver to the recipient if they're online, and echo back
-            // to the sender (e.g. if they have multiple tabs open)
             io.to(`user_${receiverId}`).emit("receive_message", payload);
             io.to(`user_${socket.userId}`).emit("receive_message", payload);
         } catch (err) {
@@ -82,15 +80,13 @@ io.on("connection", (socket) => {
     });
 });
 
-// Middleware to verify JWT token
+// ====================== MIDDLEWARE ======================
+
 const verifyToken = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
-        return res.status(401).json({
-            success: false,
-            message: "No token provided"
-        });
+        return res.status(401).json({ success: false, message: "No token provided" });
     }
 
     try {
@@ -99,14 +95,10 @@ const verifyToken = (req, res, next) => {
         req.userEmail = decoded.email;
         next();
     } catch (err) {
-        return res.status(401).json({
-            success: false,
-            message: "Invalid or expired token"
-        });
+        return res.status(401).json({ success: false, message: "Invalid or expired token" });
     }
 };
 
-// Middleware to verify an admin JWT token (separate claim: isAdmin)
 const verifyAdminToken = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
 
@@ -129,73 +121,10 @@ const verifyAdminToken = (req, res, next) => {
 
 // ====================== AUTH ROUTES ======================
 
-// Async/Await Registration Route
-app.post("/api/auth/register", async (req, res) => {
-    const { full_name, email, phone, password, role } = req.body;
-
-    const sql = `
-        INSERT INTO users 
-        (full_name, email, phone, password, role, joined_date)
-        VALUES (?, ?, ?, ?, ?, NOW())
-    `;
-
-    try {
-        await db.query(sql, [full_name, email, phone, password, role]);
-        return res.json({ success: true, message: "Signup Successful" });
-    } catch (err) {
-        console.error("Registration Error:", err);
-        return res.status(400).json({
-            success: false,
-            message: "Email already exists or invalid data entry."
-        });
-    }
-});
-
-// Async/Await Login Route
-app.post("/api/auth/login", async (req, res) => {
-    const { email, password } = req.body;
-
-    const sql = `
-        SELECT user_id, full_name, email, role 
-        FROM users 
-        WHERE email = ? AND password = ?
-    `;
-
-    try {
-        const [rows] = await db.query(sql, [email, password]);
-
-        if (rows.length > 0) {
-            const user = rows[0];
-
-            const token = jwt.sign(
-                { userId: user.user_id, email: user.email },
-                JWT_SECRET,
-                { expiresIn: '7d' }
-            );
-
-            return res.json({
-                success: true,
-                message: "Login Successful",
-                token: token,
-                user: {
-                    user_id: user.user_id,
-                    full_name: user.full_name,
-                    email: user.email,
-                    role: user.role
-                }
-            });
-        } else {
-            return res.status(401).json({ success: false, message: "Invalid Email or Password" });
-        }
-    } catch (err) {
-        console.error("Login Database Error:", err);
-        return res.status(500).json({ success: false, message: "Database failure occurred." });
-    }
-});
+app.use("/api/auth", authRoutes);
 
 // ====================== USER PROFILE ROUTES ======================
 
-// Get Current Logged-in User Info
 app.get("/api/users/me", verifyToken, async (req, res) => {
     const userId = req.userId;
 
@@ -241,7 +170,6 @@ app.get("/api/users/me", verifyToken, async (req, res) => {
     }
 });
 
-// Public Profile by ID — includes stats for the profile page
 app.get("/api/users/profile/:id", async (req, res) => {
     const userId = req.params.id;
     const sql = `
@@ -277,7 +205,6 @@ app.get("/api/users/profile/:id", async (req, res) => {
     }
 });
 
-// Update Profile Details (Including Phone Number)
 app.put("/api/users/me", verifyToken, async (req, res) => {
     const userId = req.userId;
     const { full_name, bio, location, avatar, phone } = req.body;
@@ -299,7 +226,6 @@ app.put("/api/users/me", verifyToken, async (req, res) => {
 
 // ====================== SKILL MANAGEMENT ======================
 
-// Add Skill by Provider
 app.post("/api/users/skills", verifyToken, async (req, res) => {
     const userId = req.userId;
     const { skill_name, skill_level, category, description, price_per_session, availability } = req.body;
@@ -328,7 +254,6 @@ app.post("/api/users/skills", verifyToken, async (req, res) => {
     }
 });
 
-// Get skills for the logged-in provider (their own dashboard)
 app.get("/api/users/skills", verifyToken, async (req, res) => {
     const userId = req.userId;
     const sql = `SELECT * FROM skills WHERE provider_id = ? ORDER BY created_at DESC`;
@@ -341,7 +266,6 @@ app.get("/api/users/skills", verifyToken, async (req, res) => {
     }
 });
 
-// Public route — anyone can view a specific provider's active skills
 app.get("/api/users/:id/skills", async (req, res) => {
     const providerId = req.params.id;
     const sql = `
@@ -358,7 +282,6 @@ app.get("/api/users/:id/skills", async (req, res) => {
     }
 });
 
-// Get All Active Skills for "Find Skills" Page
 app.get("/api/skills", async (req, res) => {
     const sql = `
         SELECT s.skill_id, s.skill_name, s.category, s.description, 
@@ -381,8 +304,6 @@ app.get("/api/skills", async (req, res) => {
 
 // ====================== MESSAGING ROUTES ======================
 
-// List of conversations for the sidebar — one row per person you've
-// exchanged at least one message with, showing the latest message.
 app.get("/api/messages/conversations", verifyToken, async (req, res) => {
     const userId = req.userId;
 
@@ -411,7 +332,6 @@ app.get("/api/messages/conversations", verifyToken, async (req, res) => {
     }
 });
 
-// Full message history with one specific other user
 app.get("/api/messages/:otherUserId", verifyToken, async (req, res) => {
     const userId = req.userId;
     const otherUserId = req.params.otherUserId;
@@ -434,8 +354,6 @@ app.get("/api/messages/:otherUserId", verifyToken, async (req, res) => {
 
 // ====================== ADMIN ROUTES ======================
 
-// Admin Login — matches existing plaintext-password pattern used by user auth
-// (consistent with current codebase; see note about hashing in project follow-ups)
 app.post("/admin/login", async (req, res) => {
     const { username, password } = req.body;
 
@@ -472,12 +390,10 @@ app.post("/admin/login", async (req, res) => {
     }
 });
 
-// Verify current admin session (used by admin.html on page load)
 app.get("/admin/me", verifyAdminToken, (req, res) => {
     return res.json({ success: true, username: req.adminUsername });
 });
 
-// Dashboard summary stats — total users, providers, skills, bookings, messages
 app.get("/admin/stats", verifyAdminToken, async (req, res) => {
     try {
         const [[userCount]] = await db.query(`SELECT COUNT(*) AS count FROM users`);
@@ -500,7 +416,6 @@ app.get("/admin/stats", verifyAdminToken, async (req, res) => {
     }
 });
 
-// List all users for the admin user-management table
 app.get("/admin/users", verifyAdminToken, async (req, res) => {
     const sql = `
         SELECT user_id, full_name, email, phone, role, location, joined_date
@@ -516,7 +431,6 @@ app.get("/admin/users", verifyAdminToken, async (req, res) => {
     }
 });
 
-// Delete a user (admin moderation action)
 app.delete("/admin/users/:id", verifyAdminToken, async (req, res) => {
     const { id } = req.params;
     try {
@@ -528,7 +442,6 @@ app.delete("/admin/users/:id", verifyAdminToken, async (req, res) => {
     }
 });
 
-// List all active skills for the admin moderation table
 app.get("/admin/skills", verifyAdminToken, async (req, res) => {
     const sql = `
         SELECT s.skill_id, s.skill_name, s.category, s.skill_level, s.status,
@@ -546,10 +459,9 @@ app.get("/admin/skills", verifyAdminToken, async (req, res) => {
     }
 });
 
-// Deactivate / reactivate a skill listing
 app.put("/admin/skills/:id/status", verifyAdminToken, async (req, res) => {
     const { id } = req.params;
-    const { status } = req.body; // 'active' | 'inactive'
+    const { status } = req.body;
     try {
         await db.query(`UPDATE skills SET status = ? WHERE skill_id = ?`, [status, id]);
         return res.json({ success: true, message: "Skill status updated" });

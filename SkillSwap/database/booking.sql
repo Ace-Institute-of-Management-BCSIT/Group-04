@@ -14,3 +14,6 @@ CREATE TABLE bookings (
     FOREIGN KEY (skill_id)
     REFERENCES skills(skill_id)
 );
+
+
+

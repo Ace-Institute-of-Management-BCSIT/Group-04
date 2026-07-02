@@ -78,6 +78,22 @@
 
       </form>
 
+      <div id="otpSection" style="display:none;">
+        <div class="input-group">
+          <label>Verification Code</label>
+          <div class="input-box">
+            <i class="fa-solid fa-key"></i>
+            <input type="text" id="otpInput" placeholder="Enter 6-digit code" maxlength="6" />
+          </div>
+          <small class="error" id="otpError"></small>
+        </div>
+        <button type="button" id="verifyOtpBtn" class="login-btn">Verify Code</button>
+        <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+          <button type="button" id="resendOtpBtn" class="login-btn" style="background:#eee;color:#333;padding:8px 12px;font-size:14px;">Resend Code</button>
+          <span id="resendCountdown" style="font-size:13px;color:#666"></span>
+        </div>
+      </div>
+
       <div class="signup-link">
         Don’t have an account?
         <a href="signup.html">Create Account</a>

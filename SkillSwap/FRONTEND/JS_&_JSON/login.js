@@ -65,8 +65,88 @@ if (loginForm) {
             const data = await window.api.login(loginEmail.value.trim(), loginPassword.value);
             console.log("Server response payload:", data);
 
+            if (data.requiresVerification) {
+                document.getElementById("loginForm").style.display = "none";
+                document.getElementById("otpSection").style.display = "block";
+
+                const otpErrorEl = document.getElementById('otpError');
+                const verifyBtn = document.getElementById('verifyOtpBtn');
+                const resendBtn = document.getElementById('resendOtpBtn');
+                const countdownEl = document.getElementById('resendCountdown');
+
+                function showOtpError(msg) {
+                    if (otpErrorEl) otpErrorEl.innerText = msg || '';
+                }
+
+                async function doVerify() {
+                    showOtpError('');
+                    const otp = document.getElementById("otpInput").value.trim();
+                    if (!otp || otp.length < 4) {
+                        showOtpError('Enter the 6-digit code');
+                        return;
+                    }
+
+                    verifyBtn.disabled = true;
+                    const result = await window.api.verifyOtp(data.email, otp);
+                    verifyBtn.disabled = false;
+
+                    if (result.success) {
+                        if (result.token) window.api.token = result.token;
+                        localStorage.setItem("skillSwapLoggedIn", "true");
+                        localStorage.setItem("skillSwapUserEmail", data.email);
+                        if (result.user) {
+                            localStorage.setItem("skillSwapUserRole", result.user.role || 'skill-seeker');
+                            localStorage.setItem("skillSwapUserName", result.user.full_name || data.email.split('@')[0]);
+                        }
+
+                        alert("Login Successful!");
+                        window.location.href = "home.html";
+                    } else {
+                        showOtpError(result.message || 'Invalid code.');
+                    }
+                }
+
+                verifyBtn.addEventListener('click', doVerify);
+
+                // Resend logic with countdown
+                let resendTimer = null;
+                const RESEND_INTERVAL = 60; // seconds
+
+                function startResendCountdown(seconds) {
+                    let remaining = seconds;
+                    resendBtn.disabled = true;
+                    countdownEl.innerText = `You can resend in ${remaining}s`;
+                    resendTimer = setInterval(() => {
+                        remaining -= 1;
+                        if (remaining <= 0) {
+                            clearInterval(resendTimer);
+                            resendBtn.disabled = false;
+                            countdownEl.innerText = '';
+                        } else {
+                            countdownEl.innerText = `You can resend in ${remaining}s`;
+                        }
+                    }, 1000);
+                }
+
+                resendBtn.addEventListener('click', async () => {
+                    resendBtn.disabled = true;
+                    showOtpError('');
+                    const resp = await window.api.resendOtp(data.email);
+                    if (resp.success) {
+                        startResendCountdown(RESEND_INTERVAL);
+                    } else {
+                        showOtpError(resp.message || 'Failed to resend code.');
+                        resendBtn.disabled = false;
+                    }
+                });
+
+                // start initial countdown because code was just sent
+                startResendCountdown(RESEND_INTERVAL);
+
+                return;
+            }
+
             if (data.success) {
-                // CRITICAL FIX: Explicitly save the JWT Token so api.js can authenticate requests
                 if (data.token) {
                     window.api.token = data.token;
                     console.log("✅ Token successfully registered in localStorage.");
@@ -74,19 +154,16 @@ if (loginForm) {
                     console.warn("⚠️ Login succeeded but no token was returned by the server.");
                 }
 
-                // Set legacy session tracking parameters
                 localStorage.setItem("skillSwapLoggedIn", "true");
                 localStorage.setItem("skillSwapUserEmail", loginEmail.value.trim());
-                
                 if (data.user) {
                     localStorage.setItem("skillSwapUserRole", data.user.role || 'skill-seeker');
                     localStorage.setItem("skillSwapUserName", data.user.full_name || loginEmail.value.split('@')[0]);
                 }
 
                 alert("Login Successful!");
-                window.location.href = "home.html"; // Safe redirect with token loaded
+                window.location.href = "home.html";
             } else {
-                // If backend returns an explicit error (like "Invalid response signature" or "Wrong Password")
                 alert(data.message || "Invalid email credentials or password.");
             }
         } catch (error) {

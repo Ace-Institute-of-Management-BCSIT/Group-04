@@ -93,6 +93,24 @@ window.api = {
         window.location.href = 'login.html';
     },
 
+    async verifyOtp(email, otp) {
+        return await this.request('/auth/verify-otp', {
+            method: 'POST',
+            body: JSON.stringify({ email, otp })
+        });
+    },
+
+    async logoutServer() {
+        return await this.request('/auth/logout', { method: 'POST' });
+    },
+
+    async resendOtp(email) {
+        return await this.request('/auth/resend-otp', {
+            method: 'POST',
+            body: JSON.stringify({ email })
+        });
+    },
+
     // ==================== USER METHODS ====================
     
     // Fetches profile schema details matching current logged-in session token
