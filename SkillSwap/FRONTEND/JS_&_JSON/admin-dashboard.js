@@ -1,6 +1,6 @@
 // FRONTEND/JS_&_JSON/admin-dashboard.js
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "";
 const adminToken = localStorage.getItem("adminToken");
 
 if (!adminToken) {

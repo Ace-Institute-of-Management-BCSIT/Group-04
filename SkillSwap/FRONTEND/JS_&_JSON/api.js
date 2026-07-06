@@ -1,5 +1,5 @@
 // FRONTEND/JS_&_JSON/api.js
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = '/api';
 
 window.api = {
     // Getter to seamlessly retrieve the JWT token from storage
@@ -16,7 +16,7 @@ window.api = {
         }
     },
 
-    // Generates request headers dynamically with authorization tokens if present.
+    // Generates request headers dynamically with authorization tokens if present
     getHeaders() {
         const headers = {
             'Content-Type': 'application/json',

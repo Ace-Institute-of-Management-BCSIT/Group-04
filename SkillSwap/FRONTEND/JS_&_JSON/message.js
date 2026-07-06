@@ -1,6 +1,6 @@
 // FRONTEND/JS_&_JSON/message.js
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = ""; // ← CHANGED: relative — works on localhost AND over the network
 const token = localStorage.getItem('token');
 
 let currentUser = null;
@@ -131,7 +131,9 @@ async function initMessages() {
     await loadCurrentUser();
     await loadConversations();
 
-    socket = io(API_BASE, { auth: { token } });
+    // ← CHANGED: no URL passed — connects to whatever origin served this page
+    // (works identically on localhost:5000 and http://<your-ip>:5000)
+    socket = io({ auth: { token } });
     socket.on("receive_message", appendIfRelevant);
     socket.on("connect_error", (err) => console.error("Socket auth failed:", err.message));
 
