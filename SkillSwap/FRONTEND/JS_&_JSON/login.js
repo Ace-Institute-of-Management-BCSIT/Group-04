@@ -70,9 +70,14 @@ if (loginForm) {
                 document.getElementById("otpSection").style.display = "block";
 
                 const otpErrorEl = document.getElementById('otpError');
+                const demoOtpNotice = document.getElementById('demoOtpNotice');
                 const verifyBtn = document.getElementById('verifyOtpBtn');
                 const resendBtn = document.getElementById('resendOtpBtn');
                 const countdownEl = document.getElementById('resendCountdown');
+
+                if (demoOtpNotice) {
+                    demoOtpNotice.innerText = data.otp ? `Demo OTP: ${data.otp}` : '';
+                }
 
                 function showOtpError(msg) {
                     if (otpErrorEl) otpErrorEl.innerText = msg || '';

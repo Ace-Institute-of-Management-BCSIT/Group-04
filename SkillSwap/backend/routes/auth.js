@@ -8,14 +8,15 @@ const nodemailer = require("nodemailer");
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
 const ENABLE_EMAIL_VERIFICATION = process.env.ENABLE_EMAIL_VERIFICATION === 'true';
+const EMAIL_VERIFICATION_SIMULATION = process.env.EMAIL_VERIFICATION_SIMULATION === 'true';
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
+    host: process.env.EMAIL_SMTP_HOST || 'smtp.sendgrid.net',
+    port: process.env.EMAIL_SMTP_PORT ? Number(process.env.EMAIL_SMTP_PORT) : 587,
+    secure: process.env.EMAIL_SMTP_SECURE === 'true',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: process.env.EMAIL_SMTP_USER || 'apikey',
+        pass: process.env.EMAIL_SMTP_PASS || process.env.EMAIL_PASS
     },
     requireTLS: true,
     tls: {
@@ -34,6 +35,11 @@ function generateOTP() {
 }
 
 async function sendOTPEmail(toEmail, otp) {
+    if (EMAIL_VERIFICATION_SIMULATION) {
+        console.log(`SIMULATED OTP for ${toEmail}: ${otp}`);
+        return;
+    }
+
     await transporter.sendMail({
         from: `"SkillSwap" <${process.env.EMAIL_USER}>`,
         to: toEmail,
@@ -118,12 +124,18 @@ router.post("/login", async (req, res) => {
 
             await sendOTPEmail(user.email, otp);
 
-            return res.json({
+            const responsePayload = {
                 success: true,
                 requiresVerification: true,
                 email: user.email,
                 message: "Verification code sent to your email."
-            });
+            };
+
+            if (EMAIL_VERIFICATION_SIMULATION) {
+                responsePayload.otp = otp;
+            }
+
+            return res.json(responsePayload);
         }
 
         const token = jwt.sign(
