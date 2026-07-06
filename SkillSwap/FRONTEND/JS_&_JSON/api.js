@@ -1,5 +1,5 @@
 // FRONTEND/JS_&_JSON/api.js
-const API_BASE = '/api';
+const API_BASE = 'https://skillswap-backend-7kc7.onrender.com/api';
 
 window.api = {
     // Getter to seamlessly retrieve the JWT token from storage

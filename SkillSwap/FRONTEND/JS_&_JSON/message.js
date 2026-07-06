@@ -1,6 +1,6 @@
 // FRONTEND/JS_&_JSON/message.js
 
-const API_BASE = ""; // ← CHANGED: relative — works on localhost AND over the network
+const API_BASE = 'https://skillswap-backend-7kc7.onrender.com/api';
 const token = localStorage.getItem('token');
 
 let currentUser = null;
@@ -9,7 +9,7 @@ let conversations = [];
 let socket = null;
 
 async function loadCurrentUser() {
-    const res = await fetch(`${API_BASE}/api/users/me`, {
+    const res = await fetch(`${API_BASE}/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
@@ -17,7 +17,7 @@ async function loadCurrentUser() {
 }
 
 async function loadConversations() {
-    const res = await fetch(`${API_BASE}/api/messages/conversations`, {
+    const res = await fetch(`${API_BASE}/messages/conversations`, {
         headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
@@ -29,7 +29,7 @@ async function loadConversations() {
 async function ensureChatPartner(id) {
     if (conversations.some(c => c.user_id == id)) return;
 
-    const res = await fetch(`${API_BASE}/api/users/profile/${id}`);
+    const res = await fetch(`${API_BASE}/users/profile/${id}`);
     const data = await res.json();
     if (data.success) {
         conversations.unshift({
@@ -83,7 +83,7 @@ async function openChat(otherUserId) {
 
     renderChatList();
 
-    const res = await fetch(`${API_BASE}/api/messages/${otherUserId}`, {
+    const res = await fetch(`${API_BASE}/messages/${otherUserId}`, {
         headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();

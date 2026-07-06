@@ -1,6 +1,6 @@
 // FRONTEND/JS_&_JSON/admin-dashboard.js
 
-const API_BASE = "";
+const API_BASE = 'https://skillswap-backend-7kc7.onrender.com/api';
 const adminToken = localStorage.getItem("adminToken");
 
 if (!adminToken) {
