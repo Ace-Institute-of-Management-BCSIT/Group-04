@@ -7,7 +7,7 @@ const crypto = require("crypto"); // ← ADDED: built-in, no install needed
 const path = require("path"); // ← ADDED: for serving frontend static files
 const { Server } = require("socket.io");
 
-const db = require("./db");
+const db = require("./db.js");
 const authRoutes = require("./routes/auth");
 
 const app = express();
