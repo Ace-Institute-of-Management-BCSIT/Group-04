@@ -21,9 +21,6 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Serve all frontend files
-app.use(express.static(path.join(__dirname, '../SkillSwap/FRONTEND/HTML')));
-
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -615,16 +612,6 @@ app.put("/api/bookings/:id/status", verifyToken, async (req, res) => {
 // ====================== START SERVER ======================
 // '0.0.0.0' makes it reachable from other devices on the same WiFi/network,
 // not just from this machine via localhost.
-// ====================== CATCH-ALL ROUTE FOR FRONTEND PAGES ======================
-app.get('*', (req, res) => {
-    const filePath = path.join(__dirname, '../SkillSwap/FRONTEND/HTML/home.html');
-    res.sendFile(filePath, (err) => {
-        if (err) {
-            res.status(404).send('Page not found');
-        }
-    });
-});
-
 // ====================== START SERVER ======================
 // '0.0.0.0' makes it reachable from other devices on the same WiFi/network,
 // not just from this machine via localhost.
