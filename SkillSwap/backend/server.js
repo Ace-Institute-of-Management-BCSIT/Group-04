@@ -22,13 +22,10 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // ====================== SERVE FRONTEND ======================
-// backend/server.js  →  ../frontend/HTML, ../frontend/CSS, ../frontend/JS_&_JSON
-app.use(express.static(path.join(__dirname, "../frontend/HTML")));
+// backend/server.js  →  ../SkillSwap/FRONTEND/HTML, ../frontend/CSS, ../frontend/JS_&_JSON
+app.use(express.static(path.join(__dirname, '../SkillSwap/FRONTEND/HTML')));
 app.use("/CSS", express.static(path.join(__dirname, "../frontend/CSS")));
 app.use("/JS_&_JSON", express.static(path.join(__dirname, "../frontend/JS_&_JSON")));
-
-// Serve frontend static files
-app.use(express.static(path.join(__dirname, "../SkillSwap/FRONTEND/HTML")));
 
 // Fallback so visiting the bare domain loads home.html
 app.get("/", (req, res) => {
