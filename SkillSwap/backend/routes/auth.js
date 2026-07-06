@@ -1,6 +1,7 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const dns = require("dns");
 const db = require("../db");
 const nodemailer = require("nodemailer");
 
@@ -15,12 +16,16 @@ const transporter = nodemailer.createTransport({
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
+    requireTLS: true,
     tls: {
         rejectUnauthorized: false
     },
     connectionTimeout: 10000,
     socketTimeout: 10000,
-    family: 4
+    family: 4,
+    lookup: (hostname, options, callback) => {
+        return dns.lookup(hostname, { family: 4, all: false }, callback);
+    }
 });
 
 function generateOTP() {
