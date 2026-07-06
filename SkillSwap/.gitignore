@@ -7,7 +7,7 @@ backend/node_modules/
 backend/.env
 
 # Backend sensitive files
-backend/db.js
+
 
 # Logs and temp files
 *.log
