@@ -22,8 +22,8 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // ====================== SERVE FRONTEND ======================
-// backend/server.js  →  ../SkillSwap/FRONTEND/HTML, ../frontend/CSS, ../frontend/JS_&_JSON
-app.use(express.static(path.join(__dirname, '../SkillSwap/FRONTEND/HTML')));
+// backend/server.js  →  ../FRONTEND/HTML, ../FRONTEND/CSS, ../FRONTEND/JS_&_JSON
+app.use(express.static(path.join(__dirname, '../FRONTEND/HTML')));
 app.use("/CSS", express.static(path.join(__dirname, "../FRONTEND/CSS")));
 app.use("/JS_&_JSON", express.static(path.join(__dirname, "../FRONTEND/JS_&_JSON")));
 
@@ -625,7 +625,7 @@ app.put("/api/bookings/:id/status", verifyToken, async (req, res) => {
 // not just from this machine via localhost.
 // ====================== CATCH-ALL ROUTE FOR FRONTEND PAGES ======================
 app.get('*', (req, res) => {
-    const filePath = path.join(__dirname, '../SkillSwap/FRONTEND/HTML/home.html');
+    const filePath = path.join(__dirname, '../FRONTEND/HTML/home.html');
     res.sendFile(filePath, (err) => {
         if (err) {
             res.status(404).send('Page not found');
