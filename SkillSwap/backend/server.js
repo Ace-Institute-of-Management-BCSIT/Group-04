@@ -27,6 +27,9 @@ app.use(express.static(path.join(__dirname, "../frontend/HTML")));
 app.use("/CSS", express.static(path.join(__dirname, "../frontend/CSS")));
 app.use("/JS_&_JSON", express.static(path.join(__dirname, "../frontend/JS_&_JSON")));
 
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, "../SkillSwap/FRONTEND/HTML")));
+
 // Fallback so visiting the bare domain loads home.html
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/HTML/home.html"));
