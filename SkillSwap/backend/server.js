@@ -24,12 +24,12 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // ====================== SERVE FRONTEND ======================
 // backend/server.js  →  ../SkillSwap/FRONTEND/HTML, ../frontend/CSS, ../frontend/JS_&_JSON
 app.use(express.static(path.join(__dirname, '../SkillSwap/FRONTEND/HTML')));
-app.use("/CSS", express.static(path.join(__dirname, "../frontend/CSS")));
-app.use("/JS_&_JSON", express.static(path.join(__dirname, "../frontend/JS_&_JSON")));
+app.use("/CSS", express.static(path.join(__dirname, "../FRONTEND/CSS")));
+app.use("/JS_&_JSON", express.static(path.join(__dirname, "../FRONTEND/JS_&_JSON")));
 
 // Fallback so visiting the bare domain loads home.html
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/HTML/home.html"));
+    res.sendFile(path.join(__dirname, "../FRONTEND/HTML/home.html"));
 });
 
 const PORT = process.env.PORT || 5000;
