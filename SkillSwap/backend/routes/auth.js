@@ -7,6 +7,7 @@ const nodemailer = require("nodemailer");
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
+const ENABLE_EMAIL_VERIFICATION = process.env.ENABLE_EMAIL_VERIFICATION === 'true';
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -104,7 +105,7 @@ router.post("/login", async (req, res) => {
             return res.status(401).json({ success: false, message: "Invalid Email or Password" });
         }
 
-        const needsVerification = !user.email_verified || user.logout_count >= 5;
+        const needsVerification = ENABLE_EMAIL_VERIFICATION && (!user.email_verified || user.logout_count >= 5);
 
         if (needsVerification) {
             const otp = generateOTP();
