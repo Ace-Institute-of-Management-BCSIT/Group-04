@@ -18,6 +18,10 @@ const io = new Server(server, {
 });
 
 app.use(cors());
+
+// Serve frontend static files (keeps local dev simple; harmless if folder absent in deployment)
+app.use(express.static(path.join(__dirname, '../SkillSwap/FRONTEND/HTML')));
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
