@@ -21,16 +21,8 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// ====================== SERVE FRONTEND ======================
-// backend/server.js  →  ../SkillSwap/FRONTEND/HTML, ../frontend/CSS, ../frontend/JS_&_JSON
+// Serve all frontend files
 app.use(express.static(path.join(__dirname, '../SkillSwap/FRONTEND/HTML')));
-app.use("/CSS", express.static(path.join(__dirname, "../FRONTEND/CSS")));
-app.use("/JS_&_JSON", express.static(path.join(__dirname, "../FRONTEND/JS_&_JSON")));
-
-// Fallback so visiting the bare domain loads home.html
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "../FRONTEND/HTML/home.html"));
-});
 
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
