@@ -623,6 +623,19 @@ app.put("/api/bookings/:id/status", verifyToken, async (req, res) => {
 // ====================== START SERVER ======================
 // '0.0.0.0' makes it reachable from other devices on the same WiFi/network,
 // not just from this machine via localhost.
+// ====================== CATCH-ALL ROUTE FOR FRONTEND PAGES ======================
+app.get('*', (req, res) => {
+    const filePath = path.join(__dirname, '../SkillSwap/FRONTEND/HTML/home.html');
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            res.status(404).send('Page not found');
+        }
+    });
+});
+
+// ====================== START SERVER ======================
+// '0.0.0.0' makes it reachable from other devices on the same WiFi/network,
+// not just from this machine via localhost.
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`SkillSwap Server is running:`);
     console.log(`  Local:   http://localhost:${PORT}`);
