@@ -56,7 +56,7 @@ router.post("/register", async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         await db.query(
-            `INSERT INTO users (full_name, email, phone, password, role, joined_date) VALUES (?, ?, ?, ?, ?, NOW())`,
+            `INSERT INTO users (full_name, email, phone, password, role, joined_date) VALUES ($1, $2, $3, $4, $5, NOW())`,
             [full_name, email, phone, hashedPassword, role]
         );
 
@@ -75,8 +75,8 @@ router.post("/login", async (req, res) => {
     }
 
     try {
-        const [rows] = await db.query(
-            `SELECT user_id, full_name, email, password, role, email_verified, logout_count FROM users WHERE email = ?`,
+        const { rows } = await db.query(
+            `SELECT user_id, full_name, email, password, role, email_verified, logout_count FROM users WHERE email = $1`,
             [email]
         );
 
@@ -98,7 +98,7 @@ router.post("/login", async (req, res) => {
             const expires = new Date(Date.now() + 10 * 60 * 1000);
 
             await db.query(
-                `UPDATE users SET verification_code = ?, verification_expires = ? WHERE user_id = ?`,
+                `UPDATE users SET verification_code = $1, verification_expires = $2 WHERE user_id = $3`,
                 [otp, expires, user.user_id]
             );
 
@@ -143,8 +143,8 @@ router.post("/verify-otp", async (req, res) => {
     }
 
     try {
-        const [rows] = await db.query(
-            `SELECT user_id, full_name, email, role, verification_code, verification_expires FROM users WHERE email = ?`,
+        const { rows } = await db.query(
+            `SELECT user_id, full_name, email, role, verification_code, verification_expires FROM users WHERE email = $1`,
             [email]
         );
 
@@ -163,7 +163,7 @@ router.post("/verify-otp", async (req, res) => {
         }
 
         await db.query(
-            `UPDATE users SET email_verified = 1, logout_count = 0, verification_code = NULL, verification_expires = NULL WHERE user_id = ?`,
+            `UPDATE users SET email_verified = 1, logout_count = 0, verification_code = NULL, verification_expires = NULL WHERE user_id = $1`,
             [user.user_id]
         );
 
@@ -198,8 +198,8 @@ router.post("/resend-otp", async (req, res) => {
     }
 
     try {
-        const [rows] = await db.query(
-            `SELECT user_id, email FROM users WHERE email = ?`,
+        const { rows } = await db.query(
+            `SELECT user_id, email FROM users WHERE email = $1`,
             [email]
         );
 
@@ -212,7 +212,7 @@ router.post("/resend-otp", async (req, res) => {
         const expires = new Date(Date.now() + 10 * 60 * 1000);
 
         await db.query(
-            `UPDATE users SET verification_code = ?, verification_expires = ? WHERE user_id = ?`,
+            `UPDATE users SET verification_code = $1, verification_expires = $2 WHERE user_id = $3`,
             [otp, expires, user.user_id]
         );
 
@@ -227,7 +227,7 @@ router.post("/resend-otp", async (req, res) => {
 
 router.post("/logout", verifyToken, async (req, res) => {
     try {
-        await db.query(`UPDATE users SET logout_count = logout_count + 1 WHERE user_id = ?`, [req.userId]);
+        await db.query(`UPDATE users SET logout_count = logout_count + 1 WHERE user_id = $1`, [req.userId]);
         return res.json({ success: true, message: "Logged out" });
     } catch (err) {
         console.error("Logout Error:", err);

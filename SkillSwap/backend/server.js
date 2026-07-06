@@ -103,15 +103,16 @@ io.on("connection", (socket) => {
 
         const sql = `
             INSERT INTO messages (sender_id, receiver_id, message_text)
-            VALUES (?, ?, ?)
+            VALUES ($1, $2, $3)
+            RETURNING message_id
         `;
 
         try {
-            const [result] = await db.query(sql, [socket.userId, receiverId, encryptedText]);
+            const { rows } = await db.query(sql, [socket.userId, receiverId, encryptedText]);
 
             // Emit plain text to clients — they never see the encrypted form
             const payload = {
-                message_id: result.insertId,
+                message_id: rows[0].message_id,
                 sender_id: socket.userId,
                 receiver_id: receiverId,
                 message_text: message.trim(), // ← plain text for the live chat UI
@@ -183,15 +184,11 @@ app.get("/api/users/me", verifyToken, async (req, res) => {
         SELECT user_id, full_name, email, phone, avatar, bio, location, rating, 
                total_reviews, total_sessions, role, joined_date
         FROM users 
-        WHERE user_id = ?
+        WHERE user_id = $1
     `;
-
+    
     try {
-        const [userRows] = await db.query(sql, [userId]);
-
-        if (userRows.length === 0) {
-            return res.status(404).json({ success: false, message: "User not found" });
-        }
+        const { rows: userRows } = await db.query(sql, [userId]);
 
         const user = userRows[0];
 
@@ -227,10 +224,10 @@ app.get("/api/users/profile/:id", async (req, res) => {
         SELECT user_id, full_name, avatar, bio, location, role,
                rating, total_reviews, total_sessions, joined_date
         FROM users 
-        WHERE user_id = ?
+        WHERE user_id = $1
     `;
     try {
-        const [rows] = await db.query(sql, [userId]);
+        const { rows } = await db.query(sql, [userId]);
         if (rows.length === 0) return res.status(404).json({ success: false, message: "User not found" });
 
         const user = rows[0];
@@ -262,8 +259,8 @@ app.put("/api/users/me", verifyToken, async (req, res) => {
 
     const sql = `
         UPDATE users 
-        SET full_name = ?, bio = ?, location = ?, avatar = ?, phone = ?
-        WHERE user_id = ?
+        SET full_name = $1, bio = $2, location = $3, avatar = $4, phone = $5
+        WHERE user_id = $6
     `;
 
     try {
@@ -285,7 +282,7 @@ app.post("/api/users/skills", verifyToken, async (req, res) => {
         INSERT INTO skills 
         (provider_id, skill_name, category, description, skill_level, 
          price_per_session, location, availability)
-        VALUES (?, ?, ?, ?, ?, ?, 'Kathmandu', ?)
+        VALUES ($1, $2, $3, $4, $5, $6, 'Kathmandu', $7)
     `;
 
     try {
@@ -307,9 +304,9 @@ app.post("/api/users/skills", verifyToken, async (req, res) => {
 
 app.get("/api/users/skills", verifyToken, async (req, res) => {
     const userId = req.userId;
-    const sql = `SELECT * FROM skills WHERE provider_id = ? ORDER BY created_at DESC`;
+    const sql = `SELECT * FROM skills WHERE provider_id = $1 ORDER BY created_at DESC`;
     try {
-        const [results] = await db.query(sql, [userId]);
+        const { rows: results } = await db.query(sql, [userId]);
         return res.json({ success: true, skills: results });
     } catch (err) {
         console.error("Get Skills Error:", err);
@@ -322,11 +319,11 @@ app.get("/api/users/:id/skills", async (req, res) => {
     const sql = `
         SELECT skill_id, skill_name, category, description, skill_level, availability
         FROM skills 
-        WHERE provider_id = ? AND status = 'active'
+        WHERE provider_id = $1 AND status = 'active'
         ORDER BY created_at DESC
     `;
     try {
-        const [results] = await db.query(sql, [providerId]);
+        const { rows: results } = await db.query(sql, [providerId]);
         return res.json({ success: true, skills: results });
     } catch (err) {
         return res.status(500).json({ success: false, message: "Failed to fetch skills" });
@@ -346,7 +343,7 @@ app.get("/api/skills", async (req, res) => {
     `;
 
     try {
-        const [results] = await db.query(sql);
+        const { rows: results } = await db.query(sql);
         return res.json({ success: true, skills: results });
     } catch (err) {
         return res.status(500).json({ success: false, message: "Database error" });
@@ -364,10 +361,10 @@ app.get("/api/messages/conversations", verifyToken, async (req, res) => {
         FROM users u
         JOIN (
             SELECT 
-                CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END AS other_id,
+                CASE WHEN sender_id = $1 THEN receiver_id ELSE sender_id END AS other_id,
                 MAX(message_id) AS last_msg_id
             FROM messages
-            WHERE sender_id = ? OR receiver_id = ?
+            WHERE sender_id = $2 OR receiver_id = $3
             GROUP BY other_id
         ) latest ON u.user_id = latest.other_id
         JOIN messages m ON m.message_id = latest.last_msg_id
@@ -375,7 +372,7 @@ app.get("/api/messages/conversations", verifyToken, async (req, res) => {
     `;
 
     try {
-        const [rows] = await db.query(sql, [userId, userId, userId]);
+        const { rows } = await db.query(sql, [userId, userId, userId]);
 
         // ← CHANGED: decrypt the sidebar preview text
         const conversations = rows.map(row => ({
@@ -397,12 +394,12 @@ app.get("/api/messages/:otherUserId", verifyToken, async (req, res) => {
     const sql = `
         SELECT message_id, sender_id, receiver_id, message_text, sent_at
         FROM messages
-        WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
+        WHERE (sender_id = $1 AND receiver_id = $2) OR (sender_id = $3 AND receiver_id = $4)
         ORDER BY sent_at ASC
     `;
 
     try {
-        const [rows] = await db.query(sql, [userId, otherUserId, otherUserId, userId]);
+        const { rows } = await db.query(sql, [userId, otherUserId, otherUserId, userId]);
 
         // ← CHANGED: decrypt every message before sending to the browser
         const messages = rows.map(row => ({
@@ -426,10 +423,10 @@ app.post("/admin/login", async (req, res) => {
         return res.status(400).json({ success: false, message: "Username and password required" });
     }
 
-    const sql = `SELECT admin_id, username FROM admin WHERE username = ? AND password = ?`;
+    const sql = `SELECT admin_id, username FROM admin WHERE username = $1 AND password = $2`;
 
     try {
-        const [rows] = await db.query(sql, [username, password]);
+        const { rows } = await db.query(sql, [username, password]);
 
         if (rows.length === 0) {
             return res.status(401).json({ success: false, message: "Invalid Username or Password" });
@@ -461,18 +458,18 @@ app.get("/admin/me", verifyAdminToken, (req, res) => {
 
 app.get("/admin/stats", verifyAdminToken, async (req, res) => {
     try {
-        const [[userCount]] = await db.query(`SELECT COUNT(*) AS count FROM users`);
-        const [[providerCount]] = await db.query(`SELECT COUNT(*) AS count FROM users WHERE role = 'Skill Provider'`);
-        const [[skillCount]] = await db.query(`SELECT COUNT(*) AS count FROM skills WHERE status = 'active'`);
-        const [[messageCount]] = await db.query(`SELECT COUNT(*) AS count FROM messages`);
+        const { rows: userCountRows } = await db.query(`SELECT COUNT(*) AS count FROM users`);
+        const { rows: providerCountRows } = await db.query(`SELECT COUNT(*) AS count FROM users WHERE role = 'Skill Provider'`);
+        const { rows: skillCountRows } = await db.query(`SELECT COUNT(*) AS count FROM skills WHERE status = 'active'`);
+        const { rows: messageCountRows } = await db.query(`SELECT COUNT(*) AS count FROM messages`);
 
         return res.json({
             success: true,
             stats: {
-                totalUsers: userCount.count,
-                totalProviders: providerCount.count,
-                activeSkills: skillCount.count,
-                totalMessages: messageCount.count
+                totalUsers: userCountRows[0].count,
+                totalProviders: providerCountRows[0].count,
+                activeSkills: skillCountRows[0].count,
+                totalMessages: messageCountRows[0].count
             }
         });
     } catch (err) {
@@ -488,7 +485,7 @@ app.get("/admin/users", verifyAdminToken, async (req, res) => {
         ORDER BY joined_date DESC
     `;
     try {
-        const [rows] = await db.query(sql);
+        const { rows } = await db.query(sql);
         return res.json({ success: true, users: rows });
     } catch (err) {
         console.error("Admin Users Error:", err);
@@ -499,7 +496,7 @@ app.get("/admin/users", verifyAdminToken, async (req, res) => {
 app.delete("/admin/users/:id", verifyAdminToken, async (req, res) => {
     const { id } = req.params;
     try {
-        await db.query(`DELETE FROM users WHERE user_id = ?`, [id]);
+        await db.query(`DELETE FROM users WHERE user_id = $1`, [id]);
         return res.json({ success: true, message: "User removed" });
     } catch (err) {
         console.error("Admin Delete User Error:", err);
@@ -516,7 +513,7 @@ app.get("/admin/skills", verifyAdminToken, async (req, res) => {
         ORDER BY s.created_at DESC
     `;
     try {
-        const [rows] = await db.query(sql);
+        const { rows } = await db.query(sql);
         return res.json({ success: true, skills: rows });
     } catch (err) {
         console.error("Admin Skills Error:", err);
@@ -528,7 +525,7 @@ app.put("/admin/skills/:id/status", verifyAdminToken, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     try {
-        await db.query(`UPDATE skills SET status = ? WHERE skill_id = ?`, [status, id]);
+        await db.query(`UPDATE skills SET status = $1 WHERE skill_id = $2`, [status, id]);
         return res.json({ success: true, message: "Skill status updated" });
     } catch (err) {
         console.error("Admin Skill Status Error:", err);
@@ -546,7 +543,7 @@ app.post("/api/bookings", verifyToken, async (req, res) => {
     }
     try {
         await db.query(
-            `INSERT INTO bookings (seeker_id, skill_id, booking_date, booking_time, status) VALUES (?, ?, ?, ?, 'Pending')`,
+            `INSERT INTO bookings (seeker_id, skill_id, booking_date, booking_time, status) VALUES ($1, $2, $3, $4, 'Pending')`,
             [seekerId, skill_id, booking_date, booking_time]
         );
         return res.json({ success: true, message: "Booking request sent!" });
@@ -565,11 +562,11 @@ app.get("/api/bookings/incoming", verifyToken, async (req, res) => {
         FROM bookings b
         JOIN skills s ON b.skill_id = s.skill_id
         JOIN users u ON b.seeker_id = u.user_id
-        WHERE s.provider_id = ?
+        WHERE s.provider_id = $1
         ORDER BY b.booking_id DESC
     `;
     try {
-        const [results] = await db.query(sql, [providerId]);
+        const { rows: results } = await db.query(sql, [providerId]);
         return res.json({ success: true, bookings: results });
     } catch (err) {
         return res.status(500).json({ success: false, message: "Failed to fetch requests." });
@@ -585,11 +582,11 @@ app.get("/api/bookings/my", verifyToken, async (req, res) => {
         FROM bookings b
         JOIN skills s ON b.skill_id = s.skill_id
         JOIN users u ON s.provider_id = u.user_id
-        WHERE b.seeker_id = ?
+        WHERE b.seeker_id = $1
         ORDER BY b.booking_id DESC
     `;
     try {
-        const [results] = await db.query(sql, [seekerId]);
+        const { rows: results } = await db.query(sql, [seekerId]);
         return res.json({ success: true, bookings: results });
     } catch (err) {
         return res.status(500).json({ success: false, message: "Failed to fetch your requests." });
@@ -605,13 +602,15 @@ app.put("/api/bookings/:id/status", verifyToken, async (req, res) => {
     }
     const sql = `
         UPDATE bookings b
-        JOIN skills s ON b.skill_id = s.skill_id
-        SET b.status = ?
-        WHERE b.booking_id = ? AND s.provider_id = ?
+        SET status = $1
+        FROM skills s
+        WHERE b.skill_id = s.skill_id
+        AND b.booking_id = $2
+        AND s.provider_id = $3
     `;
     try {
-        const [result] = await db.query(sql, [status, bookingId, providerId]);
-        if (result.affectedRows === 0) {
+        const { rowCount } = await db.query(sql, [status, bookingId, providerId]);
+        if (rowCount === 0) {
             return res.status(403).json({ success: false, message: "Not authorized or booking not found." });
         }
         return res.json({ success: true, message: `Booking ${status}.` });

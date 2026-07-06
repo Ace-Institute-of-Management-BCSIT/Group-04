@@ -1,51 +1,37 @@
 require("dotenv").config();
-const mysql = require("mysql2/promise");
+const { Pool } = require("pg");
 const { URL } = require("url");
 
-let dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    connectTimeout: 10000
-};
+let poolConfig = {};
 
-if (!dbConfig.host && process.env.DATABASE_URL) {
-    try {
-        const parsed = new URL(process.env.DATABASE_URL);
-        dbConfig = {
-            host: parsed.hostname,
-            port: parsed.port || 3306,
-            user: parsed.username,
-            password: parsed.password,
-            database: parsed.pathname ? parsed.pathname.slice(1) : undefined,
-            waitForConnections: true,
-            connectionLimit: 10,
-            queueLimit: 0,
-            connectTimeout: 10000
-        };
-    } catch (err) {
-        console.error("Failed to parse DATABASE_URL:", err.message);
-    }
+if (process.env.DATABASE_URL) {
+    poolConfig.connectionString = process.env.DATABASE_URL;
+    poolConfig.ssl = { rejectUnauthorized: false };
+} else {
+    poolConfig = {
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        ssl: { rejectUnauthorized: false }
+    };
 }
 
 const logConfig = {
-    host: dbConfig.host,
-    port: dbConfig.port || 3306,
-    user: dbConfig.user,
-    database: dbConfig.database
+    host: poolConfig.host || new URL(process.env.DATABASE_URL).hostname,
+    port: poolConfig.port || 5432,
+    user: poolConfig.user || new URL(process.env.DATABASE_URL).username,
+    database: poolConfig.database || new URL(process.env.DATABASE_URL).pathname.slice(1)
 };
 console.log("DB config:", logConfig);
 
-const pool = mysql.createPool(dbConfig);
+const pool = new Pool(poolConfig);
 
 (async () => {
     try {
-        const connection = await pool.getConnection();
-        connection.release();
+        const client = await pool.connect();
+        client.release();
         console.log("Database connection OK");
     } catch (err) {
         console.error("Database connection test failed:", err.message);
