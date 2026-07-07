@@ -632,11 +632,32 @@ app.get('*', (req, res) => {
     });
 });
 
-// ====================== START SERVER ======================
-// '0.0.0.0' makes it reachable from other devices on the same WiFi/network,
-// not just from this machine via localhost.
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`SkillSwap Server is running:`);
-    console.log(`  Local:   http://localhost:${PORT}`);
-    console.log(`  Network: http://<your-ip-address>:${PORT}  (find it with 'ipconfig' or 'ifconfig')`);
+async function initializeAdminAccount() {
+    try {
+        const { rows } = await db.query(`SELECT admin_id FROM admin LIMIT 1`);
+
+        if (rows.length > 0) {
+            return;
+        }
+
+        const defaultUsername = process.env.ADMIN_USERNAME || 'admin';
+        const defaultPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
+
+        await db.query(
+            `INSERT INTO admin (username, password) VALUES ($1, $2)`,
+            [defaultUsername, defaultPassword]
+        );
+
+        console.log(`Default admin account created: ${defaultUsername}/${defaultPassword}`);
+    } catch (err) {
+        console.error('Admin bootstrap error:', err);
+    }
+}
+
+initializeAdminAccount().finally(() => {
+    server.listen(PORT, '0.0.0.0', () => {
+        console.log(`SkillSwap Server is running:`);
+        console.log(`  Local:   http://localhost:${PORT}`);
+        console.log(`  Network: http://<your-ip-address>:${PORT}  (find it with 'ipconfig' or 'ifconfig')`);
+    });
 });
