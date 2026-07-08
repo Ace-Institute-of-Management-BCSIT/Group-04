@@ -154,28 +154,34 @@
         // Build notification items for anything that changed
         const notifs = [];
         bookings.forEach(b => {
-            const prevStatus = seen[b.booking_id];
-            const changed = prevStatus && prevStatus !== b.status;
-            const isNew = !prevStatus && b.status !== 'Pending';
+            const rawStatus = String(b.status || '').trim();
+            const normStatus = rawStatus.toLowerCase();
+
+            // Compare using normalized values to avoid casing/whitespace mismatches
+            const prevStatusRaw = seen[b.booking_id];
+            const prevStatus = prevStatusRaw ? String(prevStatusRaw).trim().toLowerCase() : undefined;
+            const changed = prevStatus && prevStatus !== normStatus;
+            const isNew = !prevStatus && normStatus !== 'pending';
 
             if (changed || isNew) {
-                // Map booking status to icon/colour/verb. Handle 'Completed' explicitly
+                // Map booking status (lowercase) to icon/colour/verb.
                 const statusMap = {
-                    Accepted: { icon: '✅', color: '#2ecc71', verb: 'accepted' },
-                    Declined: { icon: '❌', color: '#e74c3c', verb: 'declined' },
-                    Completed: { icon: '🎉', color: '#3498db', verb: 'completed' }
+                    accepted: { icon: '✅', color: '#2ecc71', verb: 'accepted' },
+                    declined: { icon: '❌', color: '#e74c3c', verb: 'declined' },
+                    completed: { icon: '🎉', color: '#3498db', verb: 'completed' }
                 };
-                const info = statusMap[b.status] || { icon: 'ℹ️', color: '#95a5a6', verb: b.status.toLowerCase() };
+
+                const info = statusMap[normStatus] || { icon: 'ℹ️', color: '#95a5a6', verb: normStatus || 'updated' };
 
                 // Wording: for Completed show "completed the session", otherwise "accepted/declined your request"
-                const actionText = (b.status === 'Completed') ? 'completed the session' : `${info.verb} your request`;
+                const actionText = (normStatus === 'completed') ? 'completed the session' : `${info.verb} your request`;
 
                 notifs.push({
                     icon: info.icon,
                     iconColor: info.color,
                     title: `<strong>${b.provider_name}</strong> ${actionText}`,
                     subtitle: `Skill: ${b.skill_name} · ${formatDate(b.booking_date)}`,
-                    status: b.status,
+                    status: rawStatus,
                     statusColor: info.color,
                     link: 'profile.html'
                 });
@@ -245,7 +251,7 @@
         window.api.request('/bookings/my').then(data => {
             if (!data.success) return;
             const seen = {};
-            (data.bookings || []).forEach(b => { seen[b.booking_id] = b.status; });
+            (data.bookings || []).forEach(b => { seen[b.booking_id] = String(b.status || '').trim().toLowerCase(); });
             localStorage.setItem(SEEKER_SEEN_KEY, JSON.stringify(seen));
             updateBadge(0);
             renderList([], '', 'All caught up!');
