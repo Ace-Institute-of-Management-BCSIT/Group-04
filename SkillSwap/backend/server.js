@@ -839,7 +839,7 @@ app.post("/api/bookings/:id/session-control", async (req, res) => {
     try {
         const { rows } = await db.query(`
             SELECT b.booking_id, b.status, b.session_status, b.session_token, b.started_at, b.completed_at,
-                   b.seeker_id, s.provider_id
+                   b.seeker_id, s.provider_id, s.price_per_session
             FROM bookings b
             JOIN skills s ON s.skill_id = b.skill_id
             WHERE b.booking_id = $1
@@ -885,6 +885,13 @@ app.post("/api/bookings/:id/session-control", async (req, res) => {
             return res.status(400).json({ success: false, message: "Session is not active yet." });
         }
 
+        // Calculate session duration and total price
+        const startTime = new Date(booking.started_at);
+        const endTime = new Date();
+        const durationMinutes = Math.round((endTime - startTime) / 60000); // Convert ms to minutes
+        const pricePerMinute = (booking.price_per_session || 0) / 60; // Assume price_per_session is hourly rate
+        const totalPrice = Math.round(durationMinutes * pricePerMinute * 100) / 100; // Round to 2 decimals
+
         await db.query(
             `UPDATE bookings
              SET status = 'Completed',
@@ -900,7 +907,12 @@ app.post("/api/bookings/:id/session-control", async (req, res) => {
             booking: {
                 booking_id: bookingId,
                 session_status: 'Completed',
-                status: 'Completed'
+                status: 'Completed',
+                started_at: booking.started_at,
+                completed_at: new Date().toISOString(),
+                duration_minutes: durationMinutes,
+                price_per_minute: Math.round(pricePerMinute * 100) / 100,
+                total_price: totalPrice
             }
         });
     } catch (err) {

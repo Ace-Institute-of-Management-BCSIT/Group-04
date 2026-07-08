@@ -129,10 +129,15 @@ async function triggerSessionAction(bookingId, action, token = null) {
 
         if (result.success) {
             if (action === 'start') {
-                // Start session without QR: backend has marked session active.
                 alert('Session started.');
-            } else {
-                alert('Session completed successfully.');
+            } else if (action === 'complete') {
+                // Show session completion details with price calculation
+                const booking = result.booking;
+                if (booking.duration_minutes !== undefined && booking.total_price !== undefined) {
+                    alert(`Session completed!\n\n⏱️ Duration: ${booking.duration_minutes} minutes\n💰 Total: Rs. ${booking.total_price}`);
+                } else {
+                    alert('Session completed successfully.');
+                }
             }
             loadIncomingRequests();
             loadMyRequests();
