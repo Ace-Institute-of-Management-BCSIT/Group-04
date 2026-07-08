@@ -86,7 +86,16 @@
             <input type="text" id="otpInput" placeholder="Enter 6-digit code" maxlength="6" />
           </div>
           <small class="error" id="otpError"></small>
-            <p id="demoOtpNotice" style="font-size:0.9rem;color:#2b8a3e;margin-top:8px;"></p>
+          <p id="demoOtpNotice" style="font-size:0.9rem;color:#2b8a3e;margin-top:8px;"></p>
+        </div>
+
+        <div class="otp-actions">
+          <button type="button" class="login-btn" id="verifyOtpBtn">Verify Code</button>
+          <button type="button" class="login-btn" id="resendOtpBtn" style="margin-top:10px;">Resend Code</button>
+          <p id="resendCountdown" style="font-size:0.85rem;margin-top:8px;"></p>
+        </div>
+      </div>
+
       <div class="signup-link">
         Don’t have an account?
         <a href="signup.html">Create Account</a>
