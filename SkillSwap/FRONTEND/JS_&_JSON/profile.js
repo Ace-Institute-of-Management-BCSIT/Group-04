@@ -86,7 +86,12 @@ async function loadMyProfile() {
                         </div>
                         <div style="margin-bottom: 15px;">
                             <label style="display:block; margin-bottom:5px; font-weight:600; color: var(--foreground);">Location</label>
-                            <input type="text" id="inputLocation" value="${user.location || ''}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; background: var(--background); color: var(--foreground); box-sizing: border-box;">
+                            <select id="inputLocation" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; background: var(--background); color: var(--foreground); box-sizing: border-box;">
+                                <option value="Kathmandu"${user.location === 'Kathmandu' ? ' selected' : ''}>Kathmandu</option>
+                                <option value="Lalitpur"${user.location === 'Lalitpur' ? ' selected' : ''}>Lalitpur</option>
+                                <option value="Bhaktapur"${user.location === 'Bhaktapur' ? ' selected' : ''}>Bhaktapur</option>
+                                <option value="Hetauda"${user.location === 'Hetauda' ? ' selected' : ''}>Hetauda</option>
+                            </select>
                         </div>
                         <div style="margin-bottom: 15px;">
                             <label style="display:block; margin-bottom:5px; font-weight:600; color: var(--foreground);">Profile Picture</label>

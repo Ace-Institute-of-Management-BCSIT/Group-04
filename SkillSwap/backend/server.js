@@ -277,9 +277,18 @@ app.get("/api/users/profile/:id", async (req, res) => {
     }
 });
 
+const VALID_PROFILE_LOCATIONS = ['Kathmandu', 'Lalitpur', 'Bhaktapur', 'Hetauda'];
+
+function normalizeProfileLocation(location) {
+    if (typeof location !== 'string') return 'Kathmandu';
+    const normalized = location.trim();
+    return VALID_PROFILE_LOCATIONS.includes(normalized) ? normalized : 'Kathmandu';
+}
+
 app.put("/api/users/me", verifyToken, async (req, res) => {
     const userId = req.userId;
     const { full_name, bio, location, avatar, phone } = req.body;
+    const finalLocation = normalizeProfileLocation(location);
 
     const sql = `
         UPDATE users 
@@ -288,7 +297,7 @@ app.put("/api/users/me", verifyToken, async (req, res) => {
     `;
 
     try {
-        await db.query(sql, [full_name, bio, location, avatar, phone, userId]);
+        await db.query(sql, [full_name, bio, finalLocation, avatar, phone, userId]);
         return res.json({ success: true, message: "Profile updated successfully" });
     } catch (err) {
         console.error("Update Profile Error:", err);
