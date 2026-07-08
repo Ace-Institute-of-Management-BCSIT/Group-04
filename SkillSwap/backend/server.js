@@ -307,14 +307,7 @@ app.put("/api/users/me", verifyToken, async (req, res) => {
 
 // ====================== SKILL MANAGEMENT ======================
 
-const VALID_SKILL_LOCATIONS = ['Kathmandu', 'Lalitpur', 'Bhaktapur', 'Hetauda'];
 const VALID_SKILL_CATEGORIES = ['Development', 'Design', 'Marketing', 'Business', 'Language', 'Music', 'Cooking', 'Fitness', 'Other'];
-
-function normalizeSkillLocation(location) {
-    if (typeof location !== 'string') return 'Kathmandu';
-    const normalized = location.trim();
-    return VALID_SKILL_LOCATIONS.includes(normalized) ? normalized : 'Kathmandu';
-}
 
 function normalizeSkillCategory(category) {
     if (typeof category !== 'string') return 'Other';
@@ -324,15 +317,14 @@ function normalizeSkillCategory(category) {
 
 app.post("/api/users/skills", verifyToken, async (req, res) => {
     const userId = req.userId;
-    const { skill_name, skill_level, category, description, price_per_session, availability, location } = req.body;
-    const finalLocation = normalizeSkillLocation(location);
+    const { skill_name, skill_level, category, description, price_per_session, availability } = req.body;
     const finalCategory = normalizeSkillCategory(category);
 
     const sql = `
         INSERT INTO skills 
         (provider_id, skill_name, category, description, skill_level, 
-         price_per_session, location, availability)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         price_per_session, availability)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
     `;
 
     try {
@@ -343,7 +335,6 @@ app.post("/api/users/skills", verifyToken, async (req, res) => {
             description,
             skill_level || 'Intermediate',
             price_per_session || 0,
-            finalLocation,
             availability || 'Flexible'
         ]);
         return res.json({ success: true, message: "Skill added successfully!" });
@@ -368,15 +359,14 @@ app.get("/api/users/skills", verifyToken, async (req, res) => {
 app.put("/api/users/skills/:id", verifyToken, async (req, res) => {
     const userId = req.userId;
     const skillId = req.params.id;
-    const { skill_name, skill_level, category, description, price_per_session, availability, location } = req.body;
-    const finalLocation = normalizeSkillLocation(location);
+    const { skill_name, skill_level, category, description, price_per_session, availability } = req.body;
     const finalCategory = normalizeSkillCategory(category);
 
     const sql = `
         UPDATE skills 
         SET skill_name = $1, skill_level = $2, category = $3, 
-            description = $4, price_per_session = $5, availability = $6, location = $7
-        WHERE skill_id = $8 AND provider_id = $9
+            description = $4, price_per_session = $5, availability = $6
+        WHERE skill_id = $7 AND provider_id = $8
         RETURNING skill_id
     `;
 
@@ -388,7 +378,6 @@ app.put("/api/users/skills/:id", verifyToken, async (req, res) => {
             description,
             price_per_session || 0,
             availability || 'Flexible',
-            finalLocation,
             skillId,
             userId
         ]);
@@ -428,14 +417,20 @@ app.delete("/api/users/skills/:id", verifyToken, async (req, res) => {
 app.get("/api/users/:id/skills", async (req, res) => {
     const providerId = req.params.id;
     const sql = `
-        SELECT skill_id, skill_name, category, description, skill_level, availability
-        FROM skills 
-        WHERE provider_id = $1 AND status = 'active'
-        ORDER BY created_at DESC
+        SELECT s.skill_id, s.skill_name, s.category, s.description, s.skill_level, s.availability,
+               u.location
+        FROM skills s
+        JOIN users u ON s.provider_id = u.user_id
+        WHERE s.provider_id = $1 AND s.status = 'active'
+        ORDER BY s.created_at DESC
     `;
     try {
         const { rows: results } = await db.query(sql, [providerId]);
-        return res.json({ success: true, skills: results });
+        const normalizedSkills = results.map(skill => ({
+            ...skill,
+            location: normalizeProfileLocation(skill.location)
+        }));
+        return res.json({ success: true, skills: normalizedSkills });
     } catch (err) {
         return res.status(500).json({ success: false, message: "Failed to fetch skills" });
     }
@@ -535,9 +530,9 @@ app.get("/api/users/:id/reviews", async (req, res) => {
 app.get("/api/skills", async (req, res) => {
     const sql = `
         SELECT s.skill_id, s.skill_name, s.category, s.description, 
-               s.skill_level, s.price_per_session, s.location, s.availability,
+               s.skill_level, s.price_per_session, s.availability,
                u.full_name as provider_name, u.avatar, u.user_id as provider_id,
-               u.bio as provider_bio, u.rating, u.total_reviews, u.location as provider_location
+               u.bio as provider_bio, u.rating, u.total_reviews, u.location
         FROM skills s
         JOIN users u ON s.provider_id = u.user_id
         WHERE s.status = 'active'
@@ -548,7 +543,7 @@ app.get("/api/skills", async (req, res) => {
         const { rows: results } = await db.query(sql);
         const normalizedSkills = results.map(skill => ({
             ...skill,
-            provider_location: normalizeProfileLocation(skill.provider_location || skill.location)
+            location: normalizeProfileLocation(skill.location)
         }));
         return res.json({ success: true, skills: normalizedSkills });
     } catch (err) {
@@ -560,9 +555,9 @@ app.get("/api/skills/random", async (req, res) => {
     const category = req.query.category;
     let sql = `
         SELECT s.skill_id, s.skill_name, s.category, s.description, 
-               s.skill_level, s.price_per_session, s.location, s.availability,
+               s.skill_level, s.price_per_session, s.availability,
                u.full_name as provider_name, u.avatar, u.user_id as provider_id,
-               u.bio as provider_bio, u.rating, u.total_reviews, u.location as provider_location
+               u.bio as provider_bio, u.rating, u.total_reviews, u.location
         FROM skills s
         JOIN users u ON s.provider_id = u.user_id
         WHERE s.status = 'active'
@@ -578,7 +573,11 @@ app.get("/api/skills/random", async (req, res) => {
 
     try {
         const { rows: results } = await db.query(sql, params);
-        return res.json({ success: true, skills: results });
+        const normalizedSkills = results.map(skill => ({
+            ...skill,
+            location: normalizeProfileLocation(skill.location)
+        }));
+        return res.json({ success: true, skills: normalizedSkills });
     } catch (err) {
         console.error("Random Skills Error:", err);
         return res.status(500).json({ success: false, message: "Database error" });

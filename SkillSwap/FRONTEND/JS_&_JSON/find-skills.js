@@ -17,7 +17,7 @@ function groupSkillsByProvider(skills) {
                 name: skill.provider_name,
                 avatar: skill.avatar,
                 bio: skill.provider_bio,
-                location: skill.provider_location || skill.location || "Kathmandu",
+                location: skill.location || "Kathmandu",
                 rating: skill.rating || 4.8,
                 reviews: skill.total_reviews || 0,
                 teaching: []
@@ -120,7 +120,7 @@ function filterUsers() {
             user.name.toLowerCase().includes(searchQuery) ||
             user.teaching.some(s => s.name.toLowerCase().includes(searchQuery));
 
-        const matchesLocation = location === 'all' || user.location === location;
+        const matchesLocation = location === 'all' || String(user.location || '').includes(location);
         return matchesSearch && matchesLocation;
     });
 

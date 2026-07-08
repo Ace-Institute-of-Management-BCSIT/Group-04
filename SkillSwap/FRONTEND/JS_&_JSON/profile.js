@@ -526,17 +526,6 @@ function bindAddSkillButton() {
                     </select>
                 </div>
                 <div style="margin-bottom:15px;">
-                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Location</label>
-                    <select id="skillLocationInput"
-                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; background: var(--background); color: var(--foreground); outline:none; cursor:pointer;"
-                        onfocus="this.style.borderColor='#2ecc71'" onblur="this.style.borderColor='var(--border)'">
-                        <option value="Kathmandu">Kathmandu</option>
-                        <option value="Lalitpur">Lalitpur</option>
-                        <option value="Bhaktapur">Bhaktapur</option>
-                        <option value="Hetauda">Hetauda</option>
-                    </select>
-                </div>
-                <div style="margin-bottom:15px;">
                     <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Price per Session (Rs)</label>
                     <input type="number" id="skillPriceInput" placeholder="e.g. 500, 1000, 1500"
                         style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
@@ -569,7 +558,6 @@ function bindAddSkillButton() {
         document.getElementById('skillNameInput').value  = '';
         document.getElementById('skillLevelInput').value = 'Intermediate';
         document.getElementById('skillCategoryInput').value = 'Other';
-        document.getElementById('skillLocationInput').value = 'Kathmandu';
         document.getElementById('skillPriceInput').value = '0';
         document.getElementById('skillDescInput').value  = '';
         errorBox.style.display = 'none';
@@ -589,7 +577,6 @@ function bindAddSkillButton() {
         const skillName = document.getElementById('skillNameInput').value.trim();
         const level     = document.getElementById('skillLevelInput').value;
         const category  = document.getElementById('skillCategoryInput').value;
-        const location  = document.getElementById('skillLocationInput').value;
         const price     = parseInt(document.getElementById('skillPriceInput').value) || 0;
         const desc      = document.getElementById('skillDescInput').value.trim();
 
@@ -611,7 +598,6 @@ function bindAddSkillButton() {
                     skill_name: skillName, 
                     skill_level: level, 
                     category: category,
-                    location: location,
                     description: desc, 
                     price_per_session: price,
                     status: 'active' 
@@ -773,17 +759,6 @@ function openEditSkillModal(skillId) {
                     </select>
                 </div>
                 <div style="margin-bottom:15px;">
-                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Location</label>
-                    <select id="editSkillLocationInput"
-                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; background: var(--background); color: var(--foreground); outline:none; cursor:pointer;"
-                        onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
-                        <option value="Kathmandu">Kathmandu</option>
-                        <option value="Lalitpur">Lalitpur</option>
-                        <option value="Bhaktapur">Bhaktapur</option>
-                        <option value="Hetauda">Hetauda</option>
-                    </select>
-                </div>
-                <div style="margin-bottom:15px;">
                     <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Price per Session (Rs)</label>
                     <input type="number" id="editSkillPriceInput" placeholder="e.g. 500, 1000, 1500"
                         style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
@@ -810,7 +785,6 @@ function openEditSkillModal(skillId) {
     document.getElementById('editSkillNameInput').value = skill.skill_name;
     document.getElementById('editSkillLevelInput').value = skill.skill_level;
     document.getElementById('editSkillCategoryInput').value = skill.category || 'Other';
-    document.getElementById('editSkillLocationInput').value = skill.location || 'Kathmandu';
     document.getElementById('editSkillPriceInput').value = skill.price_per_session || 0;
     document.getElementById('editSkillDescInput').value = skill.description || '';
     document.getElementById('editSkillError').style.display = 'none';
@@ -830,7 +804,6 @@ function openEditSkillModal(skillId) {
         const skillName = document.getElementById('editSkillNameInput').value.trim();
         const level = document.getElementById('editSkillLevelInput').value;
         const category = document.getElementById('editSkillCategoryInput').value;
-        const location = document.getElementById('editSkillLocationInput').value;
         const price = parseInt(document.getElementById('editSkillPriceInput').value) || 0;
         const desc = document.getElementById('editSkillDescInput').value.trim();
 
@@ -851,7 +824,6 @@ function openEditSkillModal(skillId) {
                     skill_name: skillName,
                     skill_level: level,
                     category: category,
-                    location: location,
                     description: desc,
                     price_per_session: price,
                     availability: 'Flexible'
