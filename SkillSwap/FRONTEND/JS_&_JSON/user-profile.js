@@ -101,7 +101,9 @@ async function loadUserProfile() {
             </div>
 
             <div id="learning-tab" class="tab-content">
-                <div class="card" style="padding:40px;text-align:center;">Learning skills coming soon...</div>
+                <div class="card" style="padding:40px;text-align:center; color:#7f8c8d;">
+                    Learning goals are not listed yet for this profile.
+                </div>
             </div>
             <div id="reviews-tab" class="tab-content">
                 <div class="card" style="padding:24px;">

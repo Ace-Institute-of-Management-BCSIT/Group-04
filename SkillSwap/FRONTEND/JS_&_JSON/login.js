@@ -2,6 +2,14 @@ const loginForm = document.getElementById("loginForm");
 const loginEmail = document.getElementById("loginEmail");
 const loginPassword = document.getElementById("loginPassword");
 const toggleLoginPassword = document.getElementById("toggleLoginPassword");
+const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+const forgotPasswordSection = document.getElementById("forgotPasswordSection");
+const forgotEmail = document.getElementById("forgotEmail");
+const forgotOtp = document.getElementById("forgotOtp");
+const forgotPasswordInput = document.getElementById("forgotPasswordInput");
+const sendResetCodeBtn = document.getElementById("sendResetCodeBtn");
+const resetPasswordBtn = document.getElementById("resetPasswordBtn");
+const forgotNotice = document.getElementById("forgotNotice");
 
 // Safeguard: Check if HTML elements actually exist on the page
 if (!loginForm || !loginEmail || !loginPassword) {
@@ -21,6 +29,71 @@ if (toggleLoginPassword && loginPassword) {
         } else {
             loginPassword.type = "password";
             toggleLoginPassword.innerHTML = `<i class="fa-regular fa-eye"></i>`;
+        }
+    });
+}
+
+if (forgotPasswordLink && forgotPasswordSection) {
+    forgotPasswordLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        forgotPasswordSection.style.display = forgotPasswordSection.style.display === "block" ? "none" : "block";
+        forgotNotice.innerText = '';
+    });
+}
+
+if (sendResetCodeBtn) {
+    sendResetCodeBtn.addEventListener("click", async () => {
+        if (!forgotEmail || !forgotEmail.value.trim()) {
+            showError(forgotEmail, "Enter your email address");
+            return;
+        }
+
+        sendResetCodeBtn.disabled = true;
+        forgotNotice.innerText = '';
+        const result = await window.api.forgotPassword(forgotEmail.value.trim());
+        sendResetCodeBtn.disabled = false;
+
+        if (result.success) {
+            forgotNotice.innerText = result.message || "Reset code sent.";
+            forgotNotice.style.color = '#2b8a3e';
+        } else {
+            forgotNotice.innerText = result.message || "Unable to send reset code.";
+            forgotNotice.style.color = '#e74c3c';
+        }
+    });
+}
+
+if (resetPasswordBtn) {
+    resetPasswordBtn.addEventListener("click", async () => {
+        if (!forgotEmail || !forgotEmail.value.trim()) {
+            showError(forgotEmail, "Enter your email address");
+            return;
+        }
+
+        if (!forgotOtp || !forgotOtp.value.trim()) {
+            showError(forgotOtp, "Enter the reset code");
+            return;
+        }
+
+        if (!forgotPasswordInput || !forgotPasswordInput.value.trim() || forgotPasswordInput.value.trim().length < 6) {
+            showError(forgotPasswordInput, "Use at least 6 characters");
+            return;
+        }
+
+        resetPasswordBtn.disabled = true;
+        forgotNotice.innerText = '';
+        const result = await window.api.resetPassword(forgotEmail.value.trim(), forgotOtp.value.trim(), forgotPasswordInput.value.trim());
+        resetPasswordBtn.disabled = false;
+
+        if (result.success) {
+            forgotNotice.innerText = result.message || "Password updated.";
+            forgotNotice.style.color = '#2b8a3e';
+            forgotEmail.value = '';
+            forgotOtp.value = '';
+            forgotPasswordInput.value = '';
+        } else {
+            forgotNotice.innerText = result.message || "Failed to reset password.";
+            forgotNotice.style.color = '#e74c3c';
         }
     });
 }

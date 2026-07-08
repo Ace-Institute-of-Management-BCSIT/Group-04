@@ -6,6 +6,11 @@ function getCategoryTagClass(category) {
     if (cat.includes('dev') || cat.includes('program') || cat.includes('web') || cat.includes('code')) return 'dev';
     if (cat.includes('design') || cat.includes('graphic') || cat.includes('ui') || cat.includes('ux')) return 'design';
     if (cat.includes('market') || cat.includes('seo') || cat.includes('social')) return 'marketing';
+    if (cat.includes('business') || cat.includes('startup') || cat.includes('strategy')) return 'marketing';
+    if (cat.includes('language') || cat.includes('english') || cat.includes('translation')) return 'tag-generic';
+    if (cat.includes('music') || cat.includes('sound') || cat.includes('sing')) return 'tag-generic';
+    if (cat.includes('cook') || cat.includes('food')) return 'tag-generic';
+    if (cat.includes('fitness') || cat.includes('health') || cat.includes('gym')) return 'tag-generic';
     return 'tag-generic';
 }
 

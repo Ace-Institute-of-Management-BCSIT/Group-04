@@ -34,6 +34,20 @@ function generateOTP() {
     return String(Math.floor(100000 + Math.random() * 900000));
 }
 
+async function ensureResetColumns() {
+    try {
+        await db.query(`
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS reset_code VARCHAR(10),
+            ADD COLUMN IF NOT EXISTS reset_expires TIMESTAMP
+        `);
+    } catch (err) {
+        console.error("Reset column setup failed:", err.message);
+    }
+}
+
+ensureResetColumns();
+
 async function sendOTPEmail(toEmail, otp) {
     if (EMAIL_VERIFICATION_SIMULATION) {
         console.log(`SIMULATED OTP for ${toEmail}: ${otp}`);
@@ -248,6 +262,90 @@ router.post("/resend-otp", async (req, res) => {
     } catch (err) {
         console.error("Resend OTP Error:", err);
         return res.status(500).json({ success: false, message: "Failed to resend code." });
+    }
+});
+
+router.post("/forgot-password", async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ success: false, message: "Email is required." });
+    }
+
+    try {
+        const { rows } = await db.query(
+            `SELECT user_id, email FROM users WHERE email = $1`,
+            [email]
+        );
+
+        if (rows.length === 0) {
+            return res.json({ success: true, message: "If an account exists, a reset code has been sent." });
+        }
+
+        const otp = generateOTP();
+        const expires = new Date(Date.now() + 10 * 60 * 1000);
+
+        await db.query(
+            `UPDATE users SET reset_code = $1, reset_expires = $2 WHERE user_id = $3`,
+            [otp, expires, rows[0].user_id]
+        );
+
+        await sendOTPEmail(email, otp);
+
+        const payload = {
+            success: true,
+            message: "If an account exists, a reset code has been sent."
+        };
+
+        if (EMAIL_VERIFICATION_SIMULATION) {
+            payload.otp = otp;
+        }
+
+        return res.json(payload);
+    } catch (err) {
+        console.error("Forgot Password Error:", err);
+        return res.status(500).json({ success: false, message: "Could not process password reset." });
+    }
+});
+
+router.post("/reset-password", async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword || newPassword.length < 6) {
+        return res.status(400).json({ success: false, message: "Email, reset code, and a new password (6+ chars) are required." });
+    }
+
+    try {
+        const { rows } = await db.query(
+            `SELECT user_id, reset_code, reset_expires FROM users WHERE email = $1`,
+            [email]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
+        const user = rows[0];
+
+        if (!user.reset_code || user.reset_code !== otp) {
+            return res.status(401).json({ success: false, message: "Incorrect reset code." });
+        }
+
+        if (new Date() > new Date(user.reset_expires)) {
+            return res.status(401).json({ success: false, message: "Reset code expired. Please request a new one." });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await db.query(
+            `UPDATE users SET password = $1, reset_code = NULL, reset_expires = NULL WHERE user_id = $2`,
+            [hashedPassword, user.user_id]
+        );
+
+        return res.json({ success: true, message: "Password updated successfully." });
+    } catch (err) {
+        console.error("Reset Password Error:", err);
+        return res.status(500).json({ success: false, message: "Could not reset password." });
     }
 });
 

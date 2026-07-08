@@ -96,6 +96,43 @@
         </div>
       </div>
 
+      <div class="signup-link" style="margin-top:10px;">
+        <a href="#" id="forgotPasswordLink">Forgot password?</a>
+      </div>
+
+      <div id="forgotPasswordSection" style="display:none; margin-top:16px;">
+        <div class="input-group">
+          <label>Email Address</label>
+          <div class="input-box">
+            <i class="fa-regular fa-envelope"></i>
+            <input type="email" id="forgotEmail" placeholder="Enter your email" />
+          </div>
+          <small class="error" id="forgotEmailError"></small>
+        </div>
+
+        <div class="input-group">
+          <label>Reset Code</label>
+          <div class="input-box">
+            <i class="fa-solid fa-key"></i>
+            <input type="text" id="forgotOtp" placeholder="Enter 6-digit code" maxlength="6" />
+          </div>
+          <small class="error" id="forgotOtpError"></small>
+        </div>
+
+        <div class="input-group">
+          <label>New Password</label>
+          <div class="input-box">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="forgotPasswordInput" placeholder="Enter new password" />
+          </div>
+          <small class="error" id="forgotPasswordError"></small>
+        </div>
+
+        <button type="button" class="login-btn" id="sendResetCodeBtn" style="margin-top:6px;">Send Reset Code</button>
+        <button type="button" class="login-btn" id="resetPasswordBtn" style="margin-top:10px;">Reset Password</button>
+        <p id="forgotNotice" style="font-size:0.9rem;color:#2b8a3e;margin-top:8px;"></p>
+      </div>
+
       <div class="signup-link">
         Don’t have an account?
         <a href="signup.html">Create Account</a>

@@ -111,6 +111,20 @@ window.api = {
         });
     },
 
+    async forgotPassword(email) {
+        return await this.request('/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ email })
+        });
+    },
+
+    async resetPassword(email, otp, newPassword) {
+        return await this.request('/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify({ email, otp, newPassword })
+        });
+    },
+
     // ==================== USER METHODS ====================
     
     // Fetches profile schema details matching current logged-in session token
