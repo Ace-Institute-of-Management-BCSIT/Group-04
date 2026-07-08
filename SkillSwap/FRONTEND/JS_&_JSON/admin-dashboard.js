@@ -70,7 +70,8 @@ if (deleteAllMessagesBtn) {
     deleteAllMessagesBtn.addEventListener("click", deleteAllMessages);
 }
 
-// ===== Overview stats =====nasync function loadStats() {
+// ===== Overview stats =====
+async function loadStats() {
     try {
         const data = await adminFetch("/admin/stats");
         if (!data || !data.success) return;
