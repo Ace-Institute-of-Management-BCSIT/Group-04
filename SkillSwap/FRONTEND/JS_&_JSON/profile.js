@@ -118,39 +118,7 @@ async function loadMyProfile() {
     }
 }
 
-function showSessionModal(booking) {
-    const existing = document.getElementById('sessionModal');
-    if (existing) existing.remove();
-
-    const modal = document.createElement('div');
-    modal.id = 'sessionModal';
-    modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.65); display:flex; align-items:center; justify-content:center; z-index:1100; padding:20px;';
-    modal.innerHTML = `
-        <div style="background:var(--card); border:1px solid var(--border); width:min(95vw, 420px); border-radius:16px; padding:24px; box-shadow:var(--shadow); position:relative;">
-            <button id="closeSessionModal" style="position:absolute; top:12px; right:12px; border:none; background:none; font-size:1.2rem; cursor:pointer; color:var(--muted-foreground);">×</button>
-            <h3 style="margin:0 0 8px 0; color:var(--foreground);">Skill Session QR</h3>
-            <p style="margin:0 0 16px 0; color:var(--muted-foreground); font-size:0.92rem;">Scan this code to start or complete the exchange.</p>
-            <div id="sessionQrContainer" style="display:flex; justify-content:center; margin-bottom:12px;"></div>
-            <p style="margin:8px 0 0 0; color:var(--muted-foreground); font-size:0.82rem; word-break:break-all;">${booking.sessionUrl}</p>
-        </div>
-    `;
-    document.body.appendChild(modal);
-
-    const qrContainer = document.getElementById('sessionQrContainer');
-    if (window.QRCode) {
-        new window.QRCode(qrContainer, {
-            text: booking.sessionUrl,
-            width: 220,
-            height: 220,
-            colorDark: '#111827',
-            colorLight: '#ffffff'
-        });
-    } else {
-        qrContainer.innerHTML = '<p style="color:#e74c3c;">QR library unavailable.</p>';
-    }
-
-    document.getElementById('closeSessionModal').onclick = () => modal.remove();
-}
+// QR-based modal removed: sessions can be started/completed without scanning QR.
 
 async function triggerSessionAction(bookingId, action, token = null) {
     try {
@@ -161,8 +129,8 @@ async function triggerSessionAction(bookingId, action, token = null) {
 
         if (result.success) {
             if (action === 'start') {
-                const sessionUrl = `${window.location.origin}/session/verify/${bookingId}?token=${encodeURIComponent(result.booking.session_token || '')}`;
-                showSessionModal({ sessionUrl });
+                // Start session without QR: backend has marked session active.
+                alert('Session started.');
             } else {
                 alert('Session completed successfully.');
             }
@@ -218,7 +186,7 @@ async function loadMyRequests() {
                 ? ''
                 : (b.session_status === 'Active'
                     ? `<button onclick="triggerSessionAction(${b.booking_id}, 'complete')" style="background:#3498db; color:white; border:none; padding:7px 12px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">Complete</button>`
-                    : (b.status === 'Accepted' ? `<button onclick="triggerSessionAction(${b.booking_id}, 'start')" style="background:#2ecc71; color:white; border:none; padding:7px 12px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">Open QR</button>` : ''));
+                    : (b.status === 'Accepted' ? `<button onclick="triggerSessionAction(${b.booking_id}, 'start')" style="background:#2ecc71; color:white; border:none; padding:7px 12px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">Start Session</button>` : ''));
 
             return `
             <div style="padding:16px 0; border-bottom:1px solid var(--border);
