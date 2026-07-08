@@ -354,6 +354,97 @@ app.get("/api/users/:id/skills", async (req, res) => {
     }
 });
 
+app.post("/api/reviews", verifyToken, async (req, res) => {
+    const seekerId = req.userId;
+    const { booking_id, rating, comment } = req.body;
+
+    if (!booking_id) {
+        return res.status(400).json({ success: false, message: "Booking ID is required." });
+    }
+
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+        return res.status(400).json({ success: false, message: "Rating must be an integer from 1 to 5." });
+    }
+
+    try {
+        const { rows: bookingRows } = await db.query(`
+            SELECT b.booking_id, b.status, b.seeker_id, s.provider_id
+            FROM bookings b
+            JOIN skills s ON s.skill_id = b.skill_id
+            WHERE b.booking_id = $1
+        `, [booking_id]);
+
+        if (bookingRows.length === 0) {
+            return res.status(404).json({ success: false, message: "Booking not found." });
+        }
+
+        const booking = bookingRows[0];
+        if (booking.seeker_id !== seekerId) {
+            return res.status(403).json({ success: false, message: "Only the booking seeker can leave a review." });
+        }
+
+        if (booking.status !== 'Completed') {
+            return res.status(400).json({ success: false, message: "Only completed sessions can be reviewed." });
+        }
+
+        const { rows: reviewRows } = await db.query(`
+            SELECT review_id FROM reviews WHERE booking_id = $1
+        `, [booking_id]);
+
+        if (reviewRows.length > 0) {
+            return res.status(400).json({ success: false, message: "A review already exists for this booking." });
+        }
+
+        await db.query(`
+            INSERT INTO reviews (booking_id, rating, comment)
+            VALUES ($1, $2, $3)
+        `, [booking_id, rating, comment || null]);
+
+        const { rows: reviewStatsRows } = await db.query(`
+            SELECT COALESCE(ROUND(AVG(r.rating)::numeric, 2), 0.00) AS avg_rating,
+                   COALESCE(COUNT(*), 0) AS review_count
+            FROM reviews r
+            JOIN bookings b ON b.booking_id = r.booking_id
+            JOIN skills s ON s.skill_id = b.skill_id
+            WHERE s.provider_id = $1
+        `, [booking.provider_id]);
+
+        const reviewStats = reviewStatsRows[0] || { avg_rating: 0.00, review_count: 0 };
+
+        await db.query(`
+            UPDATE users
+            SET rating = $1, total_reviews = $2
+            WHERE user_id = $3
+        `, [reviewStats.avg_rating, reviewStats.review_count, booking.provider_id]);
+
+        return res.json({ success: true, message: "Review submitted" });
+    } catch (err) {
+        console.error("Review submission error:", err);
+        return res.status(500).json({ success: false, message: "Failed to submit review." });
+    }
+});
+
+app.get("/api/users/:id/reviews", async (req, res) => {
+    const providerId = req.params.id;
+    const sql = `
+        SELECT r.review_id, r.rating, r.comment,
+               u.full_name AS seeker_name, u.avatar AS seeker_avatar,
+               s.skill_name, b.booking_date
+        FROM reviews r
+        JOIN bookings b ON b.booking_id = r.booking_id
+        JOIN skills s ON s.skill_id = b.skill_id
+        JOIN users u ON u.user_id = b.seeker_id
+        WHERE s.provider_id = $1
+        ORDER BY b.booking_date DESC, r.review_id DESC
+    `;
+    try {
+        const { rows: reviews } = await db.query(sql, [providerId]);
+        return res.json({ success: true, reviews });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: "Failed to fetch reviews" });
+    }
+});
+
 app.get("/api/skills", async (req, res) => {
     const sql = `
         SELECT s.skill_id, s.skill_name, s.category, s.description, 
@@ -602,10 +693,12 @@ app.get("/api/bookings/my", verifyToken, async (req, res) => {
     const sql = `
         SELECT b.booking_id, b.booking_date, b.booking_time, b.status, b.session_status, b.session_token, b.started_at, b.completed_at,
                s.skill_name,
-               u.full_name AS provider_name, u.avatar AS provider_avatar, u.user_id AS provider_id
+               u.full_name AS provider_name, u.avatar AS provider_avatar, u.user_id AS provider_id,
+               CASE WHEN r.review_id IS NULL THEN false ELSE true END AS has_review
         FROM bookings b
         JOIN skills s ON b.skill_id = s.skill_id
         JOIN users u ON s.provider_id = u.user_id
+        LEFT JOIN reviews r ON r.booking_id = b.booking_id
         WHERE b.seeker_id = $1
         ORDER BY b.booking_id DESC
     `;

@@ -144,6 +144,103 @@ async function triggerSessionAction(bookingId, action, token = null) {
     }
 }
 
+let activeReviewBookingId = null;
+let selectedReviewRating = 0;
+
+function openReviewModal(bookingId) {
+    if (document.getElementById('reviewModal')) return;
+
+    activeReviewBookingId = bookingId;
+    selectedReviewRating = 0;
+
+    document.body.insertAdjacentHTML('beforeend', `
+        <div id="reviewModal" style="display:flex; position:fixed; top:0; left:0; width:100%; height:100%;
+             background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; padding:15px;">
+            <div style="background:var(--card); border:1px solid var(--border); width:100%; max-width:460px; border-radius:16px; padding:30px; box-shadow:var(--shadow); position:relative;">
+                <button id="closeReviewModal" style="position:absolute; top:14px; right:16px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--muted-foreground);">×</button>
+                <h3 style="margin:0 0 6px 0; font-size:1.3rem; color:var(--foreground);">Leave a Review</h3>
+                <p style="margin:0 0 18px 0; color:var(--muted-foreground); font-size:0.9rem;">Share how the session went.</p>
+
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:600; font-size:0.9rem; color:var(--foreground);">Rating</label>
+                    <div id="reviewStars" style="display:flex; gap:6px;">
+                        <button type="button" class="review-star-btn" data-rating="1" style="background:none; border:none; color:#f4b400; font-size:1.5rem; cursor:pointer; padding:0;">★</button>
+                        <button type="button" class="review-star-btn" data-rating="2" style="background:none; border:none; color:#f4b400; font-size:1.5rem; cursor:pointer; padding:0;">★</button>
+                        <button type="button" class="review-star-btn" data-rating="3" style="background:none; border:none; color:#f4b400; font-size:1.5rem; cursor:pointer; padding:0;">★</button>
+                        <button type="button" class="review-star-btn" data-rating="4" style="background:none; border:none; color:#f4b400; font-size:1.5rem; cursor:pointer; padding:0;">★</button>
+                        <button type="button" class="review-star-btn" data-rating="5" style="background:none; border:none; color:#f4b400; font-size:1.5rem; cursor:pointer; padding:0;">★</button>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:18px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:600; font-size:0.9rem; color:var(--foreground);">Comment (optional)</label>
+                    <textarea id="reviewComment" rows="4" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background:var(--background); color:var(--foreground); resize:vertical;"></textarea>
+                </div>
+
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button id="cancelReviewBtn" style="background:var(--secondary); color:var(--foreground); border:none; padding:10px 18px; border-radius:8px; cursor:pointer;">Cancel</button>
+                    <button id="submitReviewBtn" style="background:#2ecc71; color:white; border:none; padding:10px 18px; border-radius:8px; cursor:pointer;">Submit</button>
+                </div>
+            </div>
+        </div>`);
+
+    document.getElementById('closeReviewModal').addEventListener('click', closeReviewModal);
+    document.getElementById('cancelReviewBtn').addEventListener('click', closeReviewModal);
+    document.getElementById('reviewModal').addEventListener('click', (e) => {
+        if (e.target.id === 'reviewModal') closeReviewModal();
+    });
+
+    document.querySelectorAll('.review-star-btn').forEach(star => {
+        star.addEventListener('click', () => {
+            selectedReviewRating = Number(star.dataset.rating);
+            renderReviewStars(selectedReviewRating);
+        });
+    });
+
+    document.getElementById('submitReviewBtn').addEventListener('click', submitReviewBooking);
+}
+
+function renderReviewStars(rating) {
+    document.querySelectorAll('.review-star-btn').forEach(star => {
+        star.textContent = Number(star.dataset.rating) <= rating ? '★' : '☆';
+    });
+}
+
+function closeReviewModal() {
+    const modal = document.getElementById('reviewModal');
+    if (modal) modal.remove();
+    activeReviewBookingId = null;
+    selectedReviewRating = 0;
+}
+
+async function submitReviewBooking() {
+    if (!activeReviewBookingId) return;
+
+    if (!selectedReviewRating) {
+        alert('Please select a rating.');
+        return;
+    }
+
+    const comment = document.getElementById('reviewComment').value.trim();
+
+    try {
+        const result = await window.api.request('/reviews', {
+            method: 'POST',
+            body: JSON.stringify({ booking_id: activeReviewBookingId, rating: selectedReviewRating, comment })
+        });
+
+        if (result.success) {
+            closeReviewModal();
+            alert('Review submitted.');
+            loadMyRequests();
+        } else {
+            alert(result.message || 'Failed to submit review.');
+        }
+    } catch (err) {
+        alert('Cannot connect to server.');
+    }
+}
+
 // ====================== MY REQUESTS (Seeker only) ======================
 
 async function loadMyRequests() {
@@ -187,6 +284,9 @@ async function loadMyRequests() {
                 : (b.session_status === 'Active'
                     ? `<button onclick="triggerSessionAction(${b.booking_id}, 'complete')" style="background:#3498db; color:white; border:none; padding:7px 12px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">Complete</button>`
                     : (b.status === 'Accepted' ? `<button onclick="triggerSessionAction(${b.booking_id}, 'start')" style="background:#2ecc71; color:white; border:none; padding:7px 12px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">Start Session</button>` : ''));
+            const reviewAction = b.status === 'Completed' && b.has_review === false
+                ? `<button onclick="openReviewModal(${b.booking_id})" style="background:#f39c12; color:white; border:none; padding:7px 12px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">Leave a Review</button>`
+                : '';
 
             return `
             <div style="padding:16px 0; border-bottom:1px solid var(--border);
@@ -213,6 +313,7 @@ async function loadMyRequests() {
                           border-radius:20px; font-size:0.82rem; font-weight:600; white-space:nowrap;">
                         ${statusIcon} ${b.status}
                     </span>
+                    ${reviewAction}
                     ${sessionAction}
                 </div>
             </div>`;

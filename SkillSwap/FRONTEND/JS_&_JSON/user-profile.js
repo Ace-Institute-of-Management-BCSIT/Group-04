@@ -15,9 +15,10 @@ async function loadUserProfile() {
     container.innerHTML = `<div class="loading">Loading profile...</div>`;
 
     try {
-        const [profileRes, skillsRes] = await Promise.all([
+        const [profileRes, skillsRes, reviewsRes] = await Promise.all([
             window.api.getUserProfile(userId),
-            window.api.request(`/users/${userId}/skills`)
+            window.api.request(`/users/${userId}/skills`),
+            window.api.request(`/users/${userId}/reviews`)
         ]);
 
         if (!profileRes.success) {
@@ -29,6 +30,7 @@ async function loadUserProfile() {
 
         const user = profileRes.user;
         const teaching = (skillsRes.success && skillsRes.skills) ? skillsRes.skills : [];
+        const reviews = (reviewsRes.success && reviewsRes.reviews) ? reviewsRes.reviews : [];
 
         // FIX 2: expose skills globally so the request modal dropdown can use them
         window._profileSkills = teaching;
@@ -102,7 +104,21 @@ async function loadUserProfile() {
                 <div class="card" style="padding:40px;text-align:center;">Learning skills coming soon...</div>
             </div>
             <div id="reviews-tab" class="tab-content">
-                <div class="card" style="padding:40px;text-align:center;">Reviews coming soon...</div>
+                <div class="card" style="padding:24px;">
+                    ${reviews.length > 0 ? reviews.map(review => `
+                        <div style="padding:16px 0; border-bottom:1px solid var(--border, #2a2f3e);">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+                                <img src="${review.seeker_avatar || DEFAULT_AVATAR}" alt="${review.seeker_name}" style="width:44px; height:44px; border-radius:50%; object-fit:cover;">
+                                <div>
+                                    <div style="font-weight:600; color:var(--text, #fff);">${review.seeker_name}</div>
+                                    <div style="color:#f4b400; font-size:0.95rem;">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
+                                </div>
+                            </div>
+                            <div style="font-size:0.85rem; color:#7f8c8d; margin-bottom:8px;">${review.skill_name} · ${new Date(review.booking_date).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })}</div>
+                            <div style="color:var(--text, #fff); line-height:1.5;">${review.comment || 'No comment provided.'}</div>
+                        </div>
+                    `).join('') : '<p style="color:#7f8c8d; margin:0;">No reviews yet.</p>'}
+                </div>
             </div>
         `;
 
