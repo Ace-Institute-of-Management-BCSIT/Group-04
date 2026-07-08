@@ -1,0 +1,179 @@
+/* ==========================================================================
+   NOTIFICATIONS COMPONENT STYLES
+   ========================================================================== */
+
+/* Notification Wrapper - Default hidden until JS confirms user session */
+.notif-bell-wrapper {
+    position: relative;
+    display: none; /* Controlled dynamically via notifications.js */
+}
+
+/* Bell trigger button */
+.notif-btn-nav {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--foreground, #fff);
+    cursor: pointer;
+    position: relative;
+    margin-right: 10px;
+    flex: 0 0 auto;
+}
+
+.notif-btn-nav i {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.notif-btn-nav:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary, #2ecc71);
+}
+
+/* Red Notification Badge */
+.notif-badge {
+    display: none; 
+    position: absolute; 
+    top: 2px; 
+    right: 2px;
+    min-width: 17px; 
+    height: 17px; 
+    border-radius: 50%; 
+    background: #e74c3c;
+    color: #fff; 
+    font-size: 10px; 
+    font-weight: 700; 
+    line-height: 13px; /* Adjusted slightly for crisp text alignment */
+    text-align: center; 
+    border: 2px solid var(--background, #0f1117);
+    padding: 0 3px; 
+    box-sizing: border-box;
+}
+
+/* Dropdown Container */
+.notif-dropdown {
+    display: none; 
+    position: absolute; 
+    top: calc(100% + 10px);
+    right: 0; 
+    width: 320px; 
+    background: var(--card, #1a1f2e);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.1)); 
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); 
+    z-index: 9999; 
+    overflow: hidden;
+}
+
+/* Header Area Inside Dropdown */
+.notif-header {
+    padding: 14px 16px; 
+    border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+
+.notif-title {
+    color: var(--foreground, #fff); 
+    font-size: 0.95rem;
+}
+
+.notif-mark-read-btn {
+    background: none; 
+    border: none; 
+    cursor: pointer;
+    color: #2ecc71; 
+    font-size: 0.78rem; 
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.notif-mark-read-btn:hover {
+    color: #27ae60;
+}
+
+/* Notifications Items List Area */
+.notif-list-container {
+    max-height: 340px; 
+    overflow-y: auto;
+}
+
+/* Loader / Empty Notification Styling */
+.notif-empty-state {
+    padding: 24px; 
+    text-align: center; 
+    color: #7f8c8d; 
+    font-size: 0.88rem;
+}
+
+/* Individual Notification Row Link */
+.notif-item {
+    display: flex; 
+    align-items: flex-start; 
+    gap: 12px; 
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border, rgba(255,255,255,0.07)); 
+    text-decoration: none;
+    transition: background 0.15s ease; 
+    cursor: pointer;
+}
+
+.notif-item:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.notif-item.unread {
+    background: var(--border, rgba(46, 204, 113, 0.05));
+}
+
+/* Icon Container Circle */
+.notif-icon-circle {
+    width: 36px; 
+    height: 36px; 
+    border-radius: 50%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-size: 1rem; 
+    flex-shrink: 0; 
+    margin-top: 2px;
+}
+
+/* Notification Typography Layout */
+.notif-body {
+    flex: 1; 
+    min-width: 0;
+}
+
+.notif-item-title {
+    margin: 0 0 3px 0; 
+    font-size: 0.88rem; 
+    color: var(--foreground, #fff);
+    line-height: 1.4;
+}
+
+.notif-item-title strong {
+    color: #fff;
+}
+
+.notif-item-subtitle {
+    margin: 0; 
+    font-size: 0.78rem; 
+    color: var(--muted-foreground, #7f8c8d);
+}
+
+/* Right-aligned Context Status Tag */
+.notif-status-badge {
+    padding: 2px 8px;
+    border-radius: 20px; 
+    font-size: 0.72rem; 
+    font-weight: 600; 
+    white-space: nowrap; 
+    flex-shrink: 0;
+}
