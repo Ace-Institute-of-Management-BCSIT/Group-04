@@ -214,9 +214,11 @@ async function loadMyRequests() {
                 'Completed': '🎉'
             }[b.status] || '';
             const sessionLabel = b.session_status === 'Active' ? 'In Session' : (b.session_status === 'Completed' ? 'Completed' : 'Not Started');
-            const sessionAction = b.session_status === 'Active'
-                ? `<button onclick="triggerSessionAction(${b.booking_id}, 'complete')" style="background:#3498db; color:white; border:none; padding:7px 12px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">Complete</button>`
-                : (b.status === 'Accepted' ? `<button onclick="triggerSessionAction(${b.booking_id}, 'start')" style="background:#2ecc71; color:white; border:none; padding:7px 12px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">Open QR</button>` : '');
+            const sessionAction = b.session_status === 'Completed'
+                ? ''
+                : (b.session_status === 'Active'
+                    ? `<button onclick="triggerSessionAction(${b.booking_id}, 'complete')" style="background:#3498db; color:white; border:none; padding:7px 12px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">Complete</button>`
+                    : (b.status === 'Accepted' ? `<button onclick="triggerSessionAction(${b.booking_id}, 'start')" style="background:#2ecc71; color:white; border:none; padding:7px 12px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">Open QR</button>` : ''));
 
             return `
             <div style="padding:16px 0; border-bottom:1px solid var(--border);
@@ -323,13 +325,19 @@ async function loadIncomingRequests() {
 
             const isPending = b.status === 'Pending';
             const sessionLabel = b.session_status === 'Active' ? 'In Session' : (b.session_status === 'Completed' ? 'Completed' : 'Not Started');
-            const sessionButton = b.status === 'Accepted' || b.session_status === 'Active' || b.session_status === 'Completed'
-                ? `<button onclick="triggerSessionAction(${b.booking_id}, '${b.session_status === 'Active' ? 'complete' : 'start'}')"
-                    style="background:${b.session_status === 'Active' ? '#3498db' : '#2ecc71'}; color:white; border:none; padding:7px 12px;
-                           border-radius:8px; cursor:pointer; font-size:0.82rem; font-weight:600;">
-                    ${b.session_status === 'Active' ? 'Complete' : 'Start Session'}
-                </button>`
-                : '';
+            const sessionButton = b.session_status === 'Completed'
+                ? ''
+                : (b.session_status === 'Active'
+                    ? `<button onclick="triggerSessionAction(${b.booking_id}, 'complete')"
+                        style="background:#3498db; color:white; border:none; padding:7px 12px;
+                               border-radius:8px; cursor:pointer; font-size:0.82rem; font-weight:600;">
+                        Complete Session
+                    </button>`
+                    : (b.status === 'Accepted' ? `<button onclick="triggerSessionAction(${b.booking_id}, 'start')"
+                        style="background:#2ecc71; color:white; border:none; padding:7px 12px;
+                               border-radius:8px; cursor:pointer; font-size:0.82rem; font-weight:600;">
+                        Start Session
+                    </button>` : ''));
 
             return `
             <div id="booking-${b.booking_id}" style="padding:16px 0; border-bottom:1px solid var(--border);
