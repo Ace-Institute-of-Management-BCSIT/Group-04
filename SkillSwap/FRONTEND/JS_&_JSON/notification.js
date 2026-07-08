@@ -159,14 +159,24 @@
             const isNew = !prevStatus && b.status !== 'Pending';
 
             if (changed || isNew) {
-                const isAccepted = b.status === 'Accepted';
+                // Map booking status to icon/colour/verb. Handle 'Completed' explicitly
+                const statusMap = {
+                    Accepted: { icon: '✅', color: '#2ecc71', verb: 'accepted' },
+                    Declined: { icon: '❌', color: '#e74c3c', verb: 'declined' },
+                    Completed: { icon: '🎉', color: '#3498db', verb: 'completed' }
+                };
+                const info = statusMap[b.status] || { icon: 'ℹ️', color: '#95a5a6', verb: b.status.toLowerCase() };
+
+                // Wording: for Completed show "completed the session", otherwise "accepted/declined your request"
+                const actionText = (b.status === 'Completed') ? 'completed the session' : `${info.verb} your request`;
+
                 notifs.push({
-                    icon: isAccepted ? '✅' : '❌',
-                    iconColor: isAccepted ? '#2ecc71' : '#e74c3c',
-                    title: `<strong>${b.provider_name}</strong> ${isAccepted ? 'accepted' : 'declined'} your request`,
+                    icon: info.icon,
+                    iconColor: info.color,
+                    title: `<strong>${b.provider_name}</strong> ${actionText}`,
                     subtitle: `Skill: ${b.skill_name} · ${formatDate(b.booking_date)}`,
                     status: b.status,
-                    statusColor: isAccepted ? '#2ecc71' : '#e74c3c',
+                    statusColor: info.color,
                     link: 'profile.html'
                 });
             }
