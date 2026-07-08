@@ -72,16 +72,11 @@ async function loadUserProfile() {
                         <div class="stat-value">${teaching.length}</div>
                         <div class="stat-label">Teaching</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value">0</div>
-                        <div class="stat-label">Learning</div>
-                    </div>
                 </div>
             </div>
 
             <div class="tabs">
                 <button class="tab-btn active" data-tab="teaching">Teaching</button>
-                <button class="tab-btn" data-tab="learning">Learning</button>
                 <button class="tab-btn" data-tab="reviews">Reviews</button>
             </div>
 
@@ -100,11 +95,6 @@ async function loadUserProfile() {
                 </div>
             </div>
 
-            <div id="learning-tab" class="tab-content">
-                <div class="card" style="padding:40px;text-align:center; color:#7f8c8d;">
-                    Learning goals are not listed yet for this profile.
-                </div>
-            </div>
             <div id="reviews-tab" class="tab-content">
                 <div class="card" style="padding:24px;">
                     ${reviews.length > 0 ? reviews.map(review => `
