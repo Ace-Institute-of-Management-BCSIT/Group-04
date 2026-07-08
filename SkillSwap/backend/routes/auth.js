@@ -1,83 +1,100 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const dns = require("dns");
 const db = require("../db");
-const nodemailer = require("nodemailer");
+const { sendEmail } = require("../services/emailService");
+const { verifyToken } = require("../middleware/auth");
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
-const ENABLE_EMAIL_VERIFICATION = process.env.ENABLE_EMAIL_VERIFICATION === 'true';
-const EMAIL_VERIFICATION_SIMULATION = process.env.EMAIL_VERIFICATION_SIMULATION === 'true';
-
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_SMTP_HOST || 'smtp.sendgrid.net',
-    port: process.env.EMAIL_SMTP_PORT ? Number(process.env.EMAIL_SMTP_PORT) : 587,
-    secure: process.env.EMAIL_SMTP_SECURE === 'true',
-    auth: {
-        user: process.env.EMAIL_SMTP_USER || 'apikey',
-        pass: process.env.EMAIL_SMTP_PASS || process.env.EMAIL_PASS
-    },
-    requireTLS: true,
-    tls: {
-        rejectUnauthorized: false
-    },
-    connectionTimeout: 10000,
-    socketTimeout: 10000,
-    family: 4,
-    lookup: (hostname, options, callback) => {
-        return dns.lookup(hostname, { family: 4, all: false }, callback);
-    }
-});
+const SALT_ROUNDS = 10;
 
 function generateOTP() {
     return String(Math.floor(100000 + Math.random() * 900000));
 }
 
-async function ensureResetColumns() {
-    try {
-        await db.query(`
-            ALTER TABLE users
-            ADD COLUMN IF NOT EXISTS reset_code VARCHAR(10),
-            ADD COLUMN IF NOT EXISTS reset_expires TIMESTAMP
-        `);
-    } catch (err) {
-        console.error("Reset column setup failed:", err.message);
-    }
+function buildOtpEmailHtml({ title, otp, intro }) {
+    return `
+        <div style="font-family:Arial,sans-serif;background:#0f172a;color:#e2e8f0;padding:32px;line-height:1.6;">
+            <div style="max-width:560px;margin:0 auto;background:#111827;border:1px solid #243043;border-radius:16px;padding:32px;">
+                <h2 style="margin:0 0 16px;color:#ffffff;">${title}</h2>
+                <p style="margin:0 0 24px;color:#cbd5e1;">${intro}</p>
+                <div style="display:inline-block;background:#1f2937;border:1px solid #334155;border-radius:12px;padding:16px 24px;font-size:28px;font-weight:700;letter-spacing:4px;color:#34d399;">
+                    ${otp}
+                </div>
+                <p style="margin:24px 0 0;color:#94a3b8;font-size:14px;">This code expires in 10 minutes. If you did not request it, you can ignore this email.</p>
+            </div>
+        </div>
+    `;
 }
 
-ensureResetColumns();
+async function storeVerificationCode(userId, otp) {
+    const expires = new Date(Date.now() + 10 * 60 * 1000);
 
-async function sendOTPEmail(toEmail, otp) {
-    if (EMAIL_VERIFICATION_SIMULATION) {
-        console.log(`SIMULATED OTP for ${toEmail}: ${otp}`);
-        return;
-    }
+    await db.query(
+        `UPDATE users SET verification_code = $1, verification_expires = $2 WHERE user_id = $3`,
+        [otp, expires, userId]
+    );
 
-    await transporter.sendMail({
-        from: `"SkillSwap" <${process.env.EMAIL_USER}>`,
-        to: toEmail,
-        subject: "Your SkillSwap verification code",
-        html: `<p>Your verification code is:</p><h2>${otp}</h2><p>This code expires in 10 minutes.</p>`
+    return expires;
+}
+
+async function sendOtpEmail({ email, otp, title, intro, subject }) {
+    await sendEmail({
+        to: email,
+        subject,
+        html: buildOtpEmailHtml({ title, otp, intro })
     });
 }
 
-const verifyToken = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
+function buildAuthUser(user) {
+    return {
+        user_id: user.user_id,
+        full_name: user.full_name,
+        email: user.email,
+        role: user.role
+    };
+}
 
-    if (!token) {
-        return res.status(401).json({ success: false, message: "No token provided" });
+function issueAuthToken(user) {
+    return jwt.sign(
+        { userId: user.user_id, email: user.email },
+        JWT_SECRET,
+        { expiresIn: "7d" }
+    );
+}
+
+async function fetchAuthUserByEmail(email) {
+    return db.query(
+        `SELECT user_id, full_name, email, password, role, email_verified, logout_count, verification_code, verification_expires FROM users WHERE email = $1`,
+        [email]
+    );
+}
+
+async function sendLoginVerificationCode(user, res) {
+    const otp = generateOTP();
+    await storeVerificationCode(user.user_id, otp);
+
+    await sendOtpEmail({
+        email: user.email,
+        otp,
+        title: "Verify your SkillSwap login",
+        intro: "Use the code below to finish signing in to your SkillSwap account.",
+        subject: "Your SkillSwap verification code"
+    });
+
+    const payload = {
+        success: true,
+        requiresVerification: true,
+        email: user.email
+    };
+
+    if (process.env.NODE_ENV !== "production") {
+        payload.otp = otp;
     }
 
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.userId = decoded.userId;
-        req.userEmail = decoded.email;
-        next();
-    } catch (err) {
-        return res.status(401).json({ success: false, message: "Invalid or expired token" });
-    }
-};
+    return res.json(payload);
+}
 
 router.post("/register", async (req, res) => {
     const { full_name, email, phone, password, role } = req.body;
@@ -87,7 +104,7 @@ router.post("/register", async (req, res) => {
     }
 
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
         await db.query(
             `INSERT INTO users (full_name, email, phone, password, role, joined_date) VALUES ($1, $2, $3, $4, $5, NOW())`,
@@ -109,10 +126,7 @@ router.post("/login", async (req, res) => {
     }
 
     try {
-        const { rows } = await db.query(
-            `SELECT user_id, full_name, email, password, role, email_verified, logout_count FROM users WHERE email = $1`,
-            [email]
-        );
+        const { rows } = await fetchAuthUserByEmail(email);
 
         if (rows.length === 0) {
             return res.status(401).json({ success: false, message: "Invalid Email or Password" });
@@ -125,49 +139,19 @@ router.post("/login", async (req, res) => {
             return res.status(401).json({ success: false, message: "Invalid Email or Password" });
         }
 
-        const needsVerification = ENABLE_EMAIL_VERIFICATION && (!user.email_verified || user.logout_count >= 5);
+        const needsVerification = !user.email_verified || user.logout_count >= 5;
 
         if (needsVerification) {
-            const otp = generateOTP();
-            const expires = new Date(Date.now() + 10 * 60 * 1000);
-
-            await db.query(
-                `UPDATE users SET verification_code = $1, verification_expires = $2 WHERE user_id = $3`,
-                [otp, expires, user.user_id]
-            );
-
-            await sendOTPEmail(user.email, otp);
-
-            const responsePayload = {
-                success: true,
-                requiresVerification: true,
-                email: user.email,
-                message: "Verification code sent to your email."
-            };
-
-            if (EMAIL_VERIFICATION_SIMULATION) {
-                responsePayload.otp = otp;
-            }
-
-            return res.json(responsePayload);
+            return await sendLoginVerificationCode(user, res);
         }
 
-        const token = jwt.sign(
-            { userId: user.user_id, email: user.email },
-            JWT_SECRET,
-            { expiresIn: "7d" }
-        );
+        const token = issueAuthToken(user);
 
         return res.json({
             success: true,
             message: "Login Successful",
             token,
-            user: {
-                user_id: user.user_id,
-                full_name: user.full_name,
-                email: user.email,
-                role: user.role
-            }
+            user: buildAuthUser(user)
         });
     } catch (err) {
         console.error("Login Database Error:", err);
@@ -203,26 +187,17 @@ router.post("/verify-otp", async (req, res) => {
         }
 
         await db.query(
-            `UPDATE users SET email_verified = 1, logout_count = 0, verification_code = NULL, verification_expires = NULL WHERE user_id = $1`,
+            `UPDATE users SET email_verified = TRUE, logout_count = 0, verification_code = NULL, verification_expires = NULL WHERE user_id = $1`,
             [user.user_id]
         );
 
-        const token = jwt.sign(
-            { userId: user.user_id, email: user.email },
-            JWT_SECRET,
-            { expiresIn: "7d" }
-        );
+        const token = issueAuthToken(user);
 
         return res.json({
             success: true,
             message: "Login Successful",
             token,
-            user: {
-                user_id: user.user_id,
-                full_name: user.full_name,
-                email: user.email,
-                role: user.role
-            }
+            user: buildAuthUser(user)
         });
     } catch (err) {
         console.error("OTP Verify Error:", err);
@@ -243,22 +218,22 @@ router.post("/resend-otp", async (req, res) => {
             [email]
         );
 
-        if (rows.length === 0) {
-            return res.status(404).json({ success: false, message: "User not found." });
+        if (rows.length > 0) {
+            const user = rows[0];
+            const otp = generateOTP();
+
+            await storeVerificationCode(user.user_id, otp);
+
+            await sendOtpEmail({
+                email: user.email,
+                otp,
+                title: "Your SkillSwap verification code",
+                intro: "Use the code below to verify your SkillSwap login.",
+                subject: "Your SkillSwap verification code"
+            });
         }
 
-        const user = rows[0];
-        const otp = generateOTP();
-        const expires = new Date(Date.now() + 10 * 60 * 1000);
-
-        await db.query(
-            `UPDATE users SET verification_code = $1, verification_expires = $2 WHERE user_id = $3`,
-            [otp, expires, user.user_id]
-        );
-
-        await sendOTPEmail(user.email, otp);
-
-        return res.json({ success: true, message: "Verification code resent." });
+        return res.json({ success: true });
     } catch (err) {
         console.error("Resend OTP Error:", err);
         return res.status(500).json({ success: false, message: "Failed to resend code." });
@@ -278,30 +253,25 @@ router.post("/forgot-password", async (req, res) => {
             [email]
         );
 
-        if (rows.length === 0) {
-            return res.json({ success: true, message: "If an account exists, a reset code has been sent." });
+        if (rows.length > 0) {
+            const user = rows[0];
+            const otp = generateOTP();
+
+            await storeVerificationCode(user.user_id, otp);
+
+            await sendOtpEmail({
+                email: user.email,
+                otp,
+                title: "Reset your SkillSwap password",
+                intro: "Use the code below to reset your SkillSwap password.",
+                subject: "Your SkillSwap password reset code"
+            });
         }
 
-        const otp = generateOTP();
-        const expires = new Date(Date.now() + 10 * 60 * 1000);
-
-        await db.query(
-            `UPDATE users SET reset_code = $1, reset_expires = $2 WHERE user_id = $3`,
-            [otp, expires, rows[0].user_id]
-        );
-
-        await sendOTPEmail(email, otp);
-
-        const payload = {
+        return res.json({
             success: true,
             message: "If an account exists, a reset code has been sent."
-        };
-
-        if (EMAIL_VERIFICATION_SIMULATION) {
-            payload.otp = otp;
-        }
-
-        return res.json(payload);
+        });
     } catch (err) {
         console.error("Forgot Password Error:", err);
         return res.status(500).json({ success: false, message: "Could not process password reset." });
@@ -317,32 +287,32 @@ router.post("/reset-password", async (req, res) => {
 
     try {
         const { rows } = await db.query(
-            `SELECT user_id, reset_code, reset_expires FROM users WHERE email = $1`,
+            `SELECT user_id, verification_code, verification_expires FROM users WHERE email = $1`,
             [email]
         );
 
         if (rows.length === 0) {
-            return res.status(404).json({ success: false, message: "User not found." });
+            return res.status(401).json({ success: false, message: "Invalid reset code or expired code." });
         }
 
         const user = rows[0];
 
-        if (!user.reset_code || user.reset_code !== otp) {
-            return res.status(401).json({ success: false, message: "Incorrect reset code." });
+        if (!user.verification_code || user.verification_code !== otp) {
+            return res.status(401).json({ success: false, message: "Invalid reset code or expired code." });
         }
 
-        if (new Date() > new Date(user.reset_expires)) {
-            return res.status(401).json({ success: false, message: "Reset code expired. Please request a new one." });
+        if (new Date() > new Date(user.verification_expires)) {
+            return res.status(401).json({ success: false, message: "Invalid reset code or expired code." });
         }
 
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
 
         await db.query(
-            `UPDATE users SET password = $1, reset_code = NULL, reset_expires = NULL WHERE user_id = $2`,
+            `UPDATE users SET password = $1, verification_code = NULL, verification_expires = NULL WHERE user_id = $2`,
             [hashedPassword, user.user_id]
         );
 
-        return res.json({ success: true, message: "Password updated successfully." });
+        return res.json({ success: true });
     } catch (err) {
         console.error("Reset Password Error:", err);
         return res.status(500).json({ success: false, message: "Could not reset password." });
