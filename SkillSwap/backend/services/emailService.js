@@ -29,11 +29,15 @@ async function sendEmail({ to, subject, html }) {
         console.log(`Email sent to ${to} with subject: ${subject}`);
         return result;
     } catch (error) {
-        console.error("Email send error:", {
-            to,
-            subject,
-            message: error.message
-        });
+        console.error("========== SMTP ERROR ==========");
+        console.error(error);
+        console.error("Message:", error.message);
+        console.error("Code:", error.code);
+        console.error("Command:", error.command);
+        console.error("Response:", error.response);
+        console.error("Response Code:", error.responseCode);
+        console.error("Stack:", error.stack);
+        console.error("================================");
         throw error;
     }
 }
