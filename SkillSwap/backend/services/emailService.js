@@ -19,6 +19,7 @@ async function sendEmail({ to, subject, html }) {
     }
 
     try {
+        console.log("Sending OTP to:", to);
         const result = await resend.emails.send({
             from: fromEmail,
             to,
