@@ -9,6 +9,7 @@ const { Server } = require("socket.io");
 
 const db = require("./db.js");
 const authRoutes = require("./routes/auth");
+const { sendEmail } = require("./services/emailService");
 const { verifyToken, verifyAdminToken } = require("./middleware/auth");
 
 const app = express();
@@ -160,6 +161,27 @@ io.on("connection", (socket) => {
 // ====================== AUTH ROUTES ======================
 
 app.use("/api/auth", authRoutes);
+
+app.get("/test-email", async (req, res) => {
+    const { to } = req.query;
+
+    if (!to) {
+        return res.status(400).json({ success: false, message: "Recipient email is required." });
+    }
+
+    try {
+        const result = await sendEmail({
+            to,
+            subject: "SkillSwap test email",
+            html: "<p>This is a test email from SkillSwap.</p>"
+        });
+
+        return res.json({ success: true, message: "Test email sent.", result });
+    } catch (error) {
+        console.error("Test email error:", error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 // ====================== USER PROFILE ROUTES ======================
 
