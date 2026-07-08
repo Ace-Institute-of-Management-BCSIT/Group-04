@@ -17,7 +17,7 @@ function groupSkillsByProvider(skills) {
                 name: skill.provider_name,
                 avatar: skill.avatar,
                 bio: skill.provider_bio,
-                location: skill.location || "Kathmandu, Nepal",
+                location: skill.provider_location || skill.location || "Kathmandu",
                 rating: skill.rating || 4.8,
                 reviews: skill.total_reviews || 0,
                 teaching: []
@@ -26,7 +26,6 @@ function groupSkillsByProvider(skills) {
         map.get(skill.provider_id).teaching.push({
             name: skill.skill_name,
             price: skill.price_per_session || 0,
-            location: skill.location || 'Kathmandu',
             category: skill.category || ''
         });
     });
@@ -88,7 +87,7 @@ function renderUserCards() {
                 <strong>Can teach:</strong>
                 <div class="skill-tags">${user.teaching.map(skill => {
                     const categoryLabel = skill.category ? ` [${skill.category}]` : '';
-                    return `<span class="skill-tag teaching">${skill.name}${categoryLabel} — Rs. ${skill.price}/hr (${skill.location})</span>`;
+                    return `<span class="skill-tag teaching">${skill.name}${categoryLabel} — Rs. ${skill.price}/hr</span>`;
                 }).join('')}</div>
             </div>
             <div class="card-actions">
@@ -121,7 +120,7 @@ function filterUsers() {
             user.name.toLowerCase().includes(searchQuery) ||
             user.teaching.some(s => s.name.toLowerCase().includes(searchQuery));
 
-        const matchesLocation = location === 'all' || user.teaching.some(skill => skill.location === location);
+        const matchesLocation = location === 'all' || user.location === location;
         return matchesSearch && matchesLocation;
     });
 

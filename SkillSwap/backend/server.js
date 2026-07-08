@@ -537,7 +537,7 @@ app.get("/api/skills", async (req, res) => {
         SELECT s.skill_id, s.skill_name, s.category, s.description, 
                s.skill_level, s.price_per_session, s.location, s.availability,
                u.full_name as provider_name, u.avatar, u.user_id as provider_id,
-               u.bio as provider_bio, u.rating, u.total_reviews
+               u.bio as provider_bio, u.rating, u.total_reviews, u.location as provider_location
         FROM skills s
         JOIN users u ON s.provider_id = u.user_id
         WHERE s.status = 'active'
@@ -546,7 +546,11 @@ app.get("/api/skills", async (req, res) => {
 
     try {
         const { rows: results } = await db.query(sql);
-        return res.json({ success: true, skills: results });
+        const normalizedSkills = results.map(skill => ({
+            ...skill,
+            provider_location: normalizeProfileLocation(skill.provider_location || skill.location)
+        }));
+        return res.json({ success: true, skills: normalizedSkills });
     } catch (err) {
         return res.status(500).json({ success: false, message: "Database error" });
     }
@@ -558,7 +562,7 @@ app.get("/api/skills/random", async (req, res) => {
         SELECT s.skill_id, s.skill_name, s.category, s.description, 
                s.skill_level, s.price_per_session, s.location, s.availability,
                u.full_name as provider_name, u.avatar, u.user_id as provider_id,
-               u.bio as provider_bio, u.rating, u.total_reviews
+               u.bio as provider_bio, u.rating, u.total_reviews, u.location as provider_location
         FROM skills s
         JOIN users u ON s.provider_id = u.user_id
         WHERE s.status = 'active'
