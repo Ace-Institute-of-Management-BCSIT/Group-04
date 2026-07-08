@@ -51,7 +51,11 @@ CREATE TABLE bookings (
     skill_id INTEGER NOT NULL REFERENCES skills(skill_id),
     booking_date DATE,
     booking_time TIME,
-    status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Accepted', 'Completed', 'Cancelled'))
+    status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Accepted', 'Completed', 'Cancelled')),
+    session_status VARCHAR(20) DEFAULT 'Not Started',
+    session_token VARCHAR(64),
+    started_at TIMESTAMP,
+    completed_at TIMESTAMP
 );
 
 CREATE TABLE payments (

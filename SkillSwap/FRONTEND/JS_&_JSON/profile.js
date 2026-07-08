@@ -118,6 +118,64 @@ async function loadMyProfile() {
     }
 }
 
+function showSessionModal(booking) {
+    const existing = document.getElementById('sessionModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'sessionModal';
+    modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.65); display:flex; align-items:center; justify-content:center; z-index:1100; padding:20px;';
+    modal.innerHTML = `
+        <div style="background:var(--card); border:1px solid var(--border); width:min(95vw, 420px); border-radius:16px; padding:24px; box-shadow:var(--shadow); position:relative;">
+            <button id="closeSessionModal" style="position:absolute; top:12px; right:12px; border:none; background:none; font-size:1.2rem; cursor:pointer; color:var(--muted-foreground);">×</button>
+            <h3 style="margin:0 0 8px 0; color:var(--foreground);">Skill Session QR</h3>
+            <p style="margin:0 0 16px 0; color:var(--muted-foreground); font-size:0.92rem;">Scan this code to start or complete the exchange.</p>
+            <div id="sessionQrContainer" style="display:flex; justify-content:center; margin-bottom:12px;"></div>
+            <p style="margin:8px 0 0 0; color:var(--muted-foreground); font-size:0.82rem; word-break:break-all;">${booking.sessionUrl}</p>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    const qrContainer = document.getElementById('sessionQrContainer');
+    if (window.QRCode) {
+        new window.QRCode(qrContainer, {
+            text: booking.sessionUrl,
+            width: 220,
+            height: 220,
+            colorDark: '#111827',
+            colorLight: '#ffffff'
+        });
+    } else {
+        qrContainer.innerHTML = '<p style="color:#e74c3c;">QR library unavailable.</p>';
+    }
+
+    document.getElementById('closeSessionModal').onclick = () => modal.remove();
+}
+
+async function triggerSessionAction(bookingId, action, token = null) {
+    try {
+        const result = await window.api.request(`/bookings/${bookingId}/session-control`, {
+            method: 'POST',
+            body: JSON.stringify({ action, token })
+        });
+
+        if (result.success) {
+            if (action === 'start') {
+                const sessionUrl = `${window.location.origin}/session/verify/${bookingId}?token=${encodeURIComponent(result.booking.session_token || '')}`;
+                showSessionModal({ sessionUrl });
+            } else {
+                alert('Session completed successfully.');
+            }
+            loadIncomingRequests();
+            loadMyRequests();
+        } else {
+            alert(result.message || 'Could not update session.');
+        }
+    } catch (err) {
+        alert('Cannot connect to server.');
+    }
+}
+
 // ====================== MY REQUESTS (Seeker only) ======================
 
 async function loadMyRequests() {
@@ -155,6 +213,10 @@ async function loadMyRequests() {
                 'Cancelled': '❌',
                 'Completed': '🎉'
             }[b.status] || '';
+            const sessionLabel = b.session_status === 'Active' ? 'In Session' : (b.session_status === 'Completed' ? 'Completed' : 'Not Started');
+            const sessionAction = b.session_status === 'Active'
+                ? `<button onclick="triggerSessionAction(${b.booking_id}, 'complete')" style="background:#3498db; color:white; border:none; padding:7px 12px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">Complete</button>`
+                : (b.status === 'Accepted' ? `<button onclick="triggerSessionAction(${b.booking_id}, 'start')" style="background:#2ecc71; color:white; border:none; padding:7px 12px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">Open QR</button>` : '');
 
             return `
             <div style="padding:16px 0; border-bottom:1px solid var(--border);
@@ -173,12 +235,16 @@ async function loadMyRequests() {
                             ${new Date(b.booking_date).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })}
                             at ${b.booking_time.slice(0,5)}
                         </p>
+                        <p style="margin:2px 0 0 0; font-size:0.78rem; color:var(--muted-foreground);">Session: ${sessionLabel}</p>
                     </div>
                 </div>
-                <span style="background:${statusColor}22; color:${statusColor}; padding:5px 14px;
-                      border-radius:20px; font-size:0.82rem; font-weight:600; white-space:nowrap;">
-                    ${statusIcon} ${b.status}
-                </span>
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <span style="background:${statusColor}22; color:${statusColor}; padding:5px 14px;
+                          border-radius:20px; font-size:0.82rem; font-weight:600; white-space:nowrap;">
+                        ${statusIcon} ${b.status}
+                    </span>
+                    ${sessionAction}
+                </div>
             </div>`;
         }).join('');
 
@@ -256,6 +322,14 @@ async function loadIncomingRequests() {
             }[b.status] || '#7f8c8d';
 
             const isPending = b.status === 'Pending';
+            const sessionLabel = b.session_status === 'Active' ? 'In Session' : (b.session_status === 'Completed' ? 'Completed' : 'Not Started');
+            const sessionButton = b.status === 'Accepted' || b.session_status === 'Active' || b.session_status === 'Completed'
+                ? `<button onclick="triggerSessionAction(${b.booking_id}, '${b.session_status === 'Active' ? 'complete' : 'start'}')"
+                    style="background:${b.session_status === 'Active' ? '#3498db' : '#2ecc71'}; color:white; border:none; padding:7px 12px;
+                           border-radius:8px; cursor:pointer; font-size:0.82rem; font-weight:600;">
+                    ${b.session_status === 'Active' ? 'Complete' : 'Start Session'}
+                </button>`
+                : '';
 
             return `
             <div id="booking-${b.booking_id}" style="padding:16px 0; border-bottom:1px solid var(--border);
@@ -274,9 +348,10 @@ async function loadIncomingRequests() {
                             ${new Date(b.booking_date).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })}
                             at ${b.booking_time.slice(0,5)}
                         </p>
+                        <p style="margin:2px 0 0 0; font-size:0.78rem; color:var(--muted-foreground);">Session: ${sessionLabel}</p>
                     </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <span style="background:${statusColor}22; color:${statusColor}; padding:4px 12px;
                           border-radius:20px; font-size:0.78rem; font-weight:600;">${b.status}</span>
                     ${isPending ? `
@@ -290,6 +365,7 @@ async function loadIncomingRequests() {
                                border-radius:8px; cursor:pointer; font-size:0.82rem; font-weight:600;">
                         Reject
                     </button>` : ''}
+                    ${sessionButton}
                 </div>
             </div>`;
         }).join('');

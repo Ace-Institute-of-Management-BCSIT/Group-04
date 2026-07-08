@@ -40,6 +40,30 @@ if (!JWT_SECRET) {
     process.exit(1);
 }
 
+async function ensureBookingSessionColumns() {
+    const statements = [
+        `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS session_status VARCHAR(20) DEFAULT 'Not Started'`,
+        `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS session_token VARCHAR(64)`,
+        `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS started_at TIMESTAMP`,
+        `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP`
+    ];
+
+    try {
+        for (const sql of statements) {
+            await db.query(sql);
+        }
+        console.log("Booking session columns ready");
+    } catch (err) {
+        console.error("Booking schema update failed:", err.message);
+    }
+}
+
+function generateSessionToken() {
+    return crypto.randomBytes(24).toString("hex");
+}
+
+ensureBookingSessionColumns();
+
 // ====================== ENCRYPTION HELPERS ======================
 // Uses AES-256-CBC. Key must be 32 bytes (64 hex chars) in .env as ENCRYPTION_KEY.
 // Stored format in DB:  <16-byte IV in hex>:<ciphertext in hex>
@@ -556,7 +580,7 @@ app.post("/api/bookings", verifyToken, async (req, res) => {
 app.get("/api/bookings/incoming", verifyToken, async (req, res) => {
     const providerId = req.userId;
     const sql = `
-        SELECT b.booking_id, b.booking_date, b.booking_time, b.status,
+        SELECT b.booking_id, b.booking_date, b.booking_time, b.status, b.session_status, b.session_token, b.started_at, b.completed_at,
                s.skill_name,
                u.full_name AS seeker_name, u.avatar AS seeker_avatar, u.user_id AS seeker_id
         FROM bookings b
@@ -576,7 +600,7 @@ app.get("/api/bookings/incoming", verifyToken, async (req, res) => {
 app.get("/api/bookings/my", verifyToken, async (req, res) => {
     const seekerId = req.userId;
     const sql = `
-        SELECT b.booking_id, b.booking_date, b.booking_time, b.status,
+        SELECT b.booking_id, b.booking_date, b.booking_time, b.status, b.session_status, b.session_token, b.started_at, b.completed_at,
                s.skill_name,
                u.full_name AS provider_name, u.avatar AS provider_avatar, u.user_id AS provider_id
         FROM bookings b
@@ -616,6 +640,200 @@ app.put("/api/bookings/:id/status", verifyToken, async (req, res) => {
         return res.json({ success: true, message: `Booking ${status}.` });
     } catch (err) {
         return res.status(500).json({ success: false, message: "Failed to update status." });
+    }
+});
+
+app.post("/api/bookings/:id/session-control", async (req, res) => {
+    const bookingId = req.params.id;
+    const { action, token } = req.body;
+    const authHeader = req.headers.authorization;
+    const bearerToken = authHeader?.split(' ')[1];
+    const jwtToken = bearerToken || req.query?.token || token;
+
+    let userId = null;
+    if (jwtToken) {
+        try {
+            const decoded = jwt.verify(jwtToken, JWT_SECRET);
+            userId = decoded.userId;
+        } catch {
+            userId = null;
+        }
+    }
+
+    if (!['start', 'complete'].includes(action)) {
+        return res.status(400).json({ success: false, message: "Invalid session action." });
+    }
+
+    try {
+        const { rows } = await db.query(`
+            SELECT b.booking_id, b.status, b.session_status, b.session_token, b.started_at, b.completed_at,
+                   b.seeker_id, s.provider_id
+            FROM bookings b
+            JOIN skills s ON s.skill_id = b.skill_id
+            WHERE b.booking_id = $1
+        `, [bookingId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Booking not found." });
+        }
+
+        const booking = rows[0];
+        const validToken = !!token && booking.session_token === token;
+        const authorized = validToken || (userId && (userId === booking.provider_id || userId === booking.seeker_id));
+
+        if (!authorized) {
+            return res.status(403).json({ success: false, message: "Not authorized for this session." });
+        }
+
+        if (action === 'start') {
+            const newToken = booking.session_token || generateSessionToken();
+            await db.query(
+                `UPDATE bookings
+                 SET status = COALESCE(NULLIF(status, 'Pending'), 'Accepted'),
+                     session_status = 'Active',
+                     session_token = $2,
+                     started_at = COALESCE(started_at, NOW()),
+                     completed_at = NULL
+                 WHERE booking_id = $1`,
+                [bookingId, newToken]
+            );
+            return res.json({
+                success: true,
+                message: "Session started.",
+                booking: {
+                    booking_id: bookingId,
+                    session_status: 'Active',
+                    session_token: newToken,
+                    status: 'Accepted'
+                }
+            });
+        }
+
+        if (booking.session_status !== 'Active') {
+            return res.status(400).json({ success: false, message: "Session is not active yet." });
+        }
+
+        await db.query(
+            `UPDATE bookings
+             SET status = 'Completed',
+                 session_status = 'Completed',
+                 completed_at = NOW()
+             WHERE booking_id = $1`,
+            [bookingId]
+        );
+
+        return res.json({
+            success: true,
+            message: "Session completed.",
+            booking: {
+                booking_id: bookingId,
+                session_status: 'Completed',
+                status: 'Completed'
+            }
+        });
+    } catch (err) {
+        console.error("Session control error:", err);
+        return res.status(500).json({ success: false, message: "Failed to manage session." });
+    }
+});
+
+app.get("/api/bookings/:id/verify", async (req, res) => {
+    const bookingId = req.params.id;
+    const { token } = req.query;
+
+    try {
+        const { rows } = await db.query(`
+            SELECT b.booking_id, b.status, b.session_status, b.session_token, b.started_at, b.completed_at,
+                   s.skill_name, u.full_name AS seeker_name
+            FROM bookings b
+            JOIN skills s ON s.skill_id = b.skill_id
+            JOIN users u ON u.user_id = b.seeker_id
+            WHERE b.booking_id = $1
+        `, [bookingId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Booking not found." });
+        }
+
+        const booking = rows[0];
+        if (token && booking.session_token !== token) {
+            return res.status(403).json({ success: false, message: "Invalid session token." });
+        }
+
+        return res.json({ success: true, booking });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: "Failed to verify booking." });
+    }
+});
+
+app.get("/session/verify/:bookingId", async (req, res) => {
+    const bookingId = req.params.bookingId;
+    const token = req.query.token;
+
+    try {
+        const { rows } = await db.query(`
+            SELECT b.booking_id, b.status, b.session_status, b.session_token, b.started_at, b.completed_at,
+                   s.skill_name, u.full_name AS seeker_name
+            FROM bookings b
+            JOIN skills s ON s.skill_id = b.skill_id
+            JOIN users u ON u.user_id = b.seeker_id
+            WHERE b.booking_id = $1
+        `, [bookingId]);
+
+        if (rows.length === 0) {
+            return res.status(404).send("Booking not found.");
+        }
+
+        const booking = rows[0];
+        if (token && booking.session_token !== token) {
+            return res.status(403).send("Invalid session token.");
+        }
+
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkillSwap Session</title>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; background:#f5f7fb; color:#111827; margin:0; display:grid; place-items:center; min-height:100vh; }
+    .card { background:white; padding:24px; border-radius:16px; box-shadow:0 12px 32px rgba(0,0,0,.12); width:min(92vw, 480px); }
+    button { width:100%; padding:12px; border:none; border-radius:10px; cursor:pointer; font-weight:700; margin-top:10px; }
+    .start { background:#2ecc71; color:white; }
+    .complete { background:#3498db; color:white; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>SkillSwap Session</h2>
+    <p><strong>Skill:</strong> ${booking.skill_name}</p>
+    <p><strong>Seeker:</strong> ${booking.seeker_name}</p>
+    <p><strong>Status:</strong> ${booking.session_status || 'Not Started'}</p>
+    <button class="start" onclick="startSession()">Start Session</button>
+    <button class="complete" onclick="completeSession()">Complete Session</button>
+    <p id="message" style="margin-top:14px; color:#4b5563;"></p>
+  </div>
+  <script>
+    const bookingId = ${bookingId};
+    const token = ${JSON.stringify(token || '')};
+    async function callSession(action) {
+      const res = await fetch('/api/bookings/' + bookingId + '/session-control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, token })
+      });
+      const data = await res.json();
+      document.getElementById('message').textContent = data.message || 'Done';
+    }
+    function startSession() { callSession('start'); }
+    function completeSession() { callSession('complete'); }
+  </script>
+</body>
+</html>`;
+
+        res.send(html);
+    } catch (err) {
+        res.status(500).send("Failed to load session page.");
     }
 });
 
