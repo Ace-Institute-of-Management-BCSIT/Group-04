@@ -8,6 +8,7 @@ const { verifyToken } = require("../middleware/auth");
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
 const SALT_ROUNDS = 10;
+const ENABLE_EMAIL_VERIFICATION = process.env.ENABLE_EMAIL_VERIFICATION === "true";
 
 function generateOTP() {
     return String(Math.floor(100000 + Math.random() * 900000));
@@ -139,7 +140,7 @@ router.post("/login", async (req, res) => {
             return res.status(401).json({ success: false, message: "Invalid Email or Password" });
         }
 
-        const needsVerification = !user.email_verified || user.logout_count >= 5;
+        const needsVerification = ENABLE_EMAIL_VERIFICATION && (!user.email_verified || user.logout_count >= 5);
 
         if (needsVerification) {
             return await sendLoginVerificationCode(user, res);
