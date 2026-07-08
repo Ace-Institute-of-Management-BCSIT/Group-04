@@ -506,9 +506,30 @@ function bindAddSkillButton() {
                 </div>
                 <div style="margin-bottom:15px;">
                     <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Category</label>
-                    <input type="text" id="skillCategoryInput" placeholder="e.g. Development, Design, Marketing…"
-                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
+                    <select id="skillCategoryInput"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; background: var(--background); color: var(--foreground); outline:none; cursor:pointer;"
                         onfocus="this.style.borderColor='#2ecc71'" onblur="this.style.borderColor='var(--border)'">
+                        <option value="Development">Development</option>
+                        <option value="Design">Design</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Business">Business</option>
+                        <option value="Language">Language</option>
+                        <option value="Music">Music</option>
+                        <option value="Cooking">Cooking</option>
+                        <option value="Fitness">Fitness</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Location</label>
+                    <select id="skillLocationInput"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; background: var(--background); color: var(--foreground); outline:none; cursor:pointer;"
+                        onfocus="this.style.borderColor='#2ecc71'" onblur="this.style.borderColor='var(--border)'">
+                        <option value="Kathmandu">Kathmandu</option>
+                        <option value="Lalitpur">Lalitpur</option>
+                        <option value="Bhaktapur">Bhaktapur</option>
+                        <option value="Hetauda">Hetauda</option>
+                    </select>
                 </div>
                 <div style="margin-bottom:15px;">
                     <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Price per Session (Rs)</label>
@@ -542,7 +563,8 @@ function bindAddSkillButton() {
     const openModal  = () => {
         document.getElementById('skillNameInput').value  = '';
         document.getElementById('skillLevelInput').value = 'Intermediate';
-        document.getElementById('skillCategoryInput').value = '';
+        document.getElementById('skillCategoryInput').value = 'Other';
+        document.getElementById('skillLocationInput').value = 'Kathmandu';
         document.getElementById('skillPriceInput').value = '0';
         document.getElementById('skillDescInput').value  = '';
         errorBox.style.display = 'none';
@@ -561,7 +583,8 @@ function bindAddSkillButton() {
     submitBtn.addEventListener('click', async () => {
         const skillName = document.getElementById('skillNameInput').value.trim();
         const level     = document.getElementById('skillLevelInput').value;
-        const category  = document.getElementById('skillCategoryInput').value.trim();
+        const category  = document.getElementById('skillCategoryInput').value;
+        const location  = document.getElementById('skillLocationInput').value;
         const price     = parseInt(document.getElementById('skillPriceInput').value) || 0;
         const desc      = document.getElementById('skillDescInput').value.trim();
 
@@ -582,7 +605,8 @@ function bindAddSkillButton() {
                 body: JSON.stringify({ 
                     skill_name: skillName, 
                     skill_level: level, 
-                    category: category || 'General',
+                    category: category,
+                    location: location,
                     description: desc, 
                     price_per_session: price,
                     status: 'active' 
@@ -729,9 +753,30 @@ function openEditSkillModal(skillId) {
                 </div>
                 <div style="margin-bottom:15px;">
                     <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Category</label>
-                    <input type="text" id="editSkillCategoryInput" placeholder="e.g. Development, Design, Marketing…"
-                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
+                    <select id="editSkillCategoryInput"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; background: var(--background); color: var(--foreground); outline:none; cursor:pointer;"
                         onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
+                        <option value="Development">Development</option>
+                        <option value="Design">Design</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Business">Business</option>
+                        <option value="Language">Language</option>
+                        <option value="Music">Music</option>
+                        <option value="Cooking">Cooking</option>
+                        <option value="Fitness">Fitness</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Location</label>
+                    <select id="editSkillLocationInput"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; background: var(--background); color: var(--foreground); outline:none; cursor:pointer;"
+                        onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
+                        <option value="Kathmandu">Kathmandu</option>
+                        <option value="Lalitpur">Lalitpur</option>
+                        <option value="Bhaktapur">Bhaktapur</option>
+                        <option value="Hetauda">Hetauda</option>
+                    </select>
                 </div>
                 <div style="margin-bottom:15px;">
                     <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Price per Session (Rs)</label>
@@ -759,7 +804,8 @@ function openEditSkillModal(skillId) {
     const modal = document.getElementById('editSkillModal');
     document.getElementById('editSkillNameInput').value = skill.skill_name;
     document.getElementById('editSkillLevelInput').value = skill.skill_level;
-    document.getElementById('editSkillCategoryInput').value = skill.category || '';
+    document.getElementById('editSkillCategoryInput').value = skill.category || 'Other';
+    document.getElementById('editSkillLocationInput').value = skill.location || 'Kathmandu';
     document.getElementById('editSkillPriceInput').value = skill.price_per_session || 0;
     document.getElementById('editSkillDescInput').value = skill.description || '';
     document.getElementById('editSkillError').style.display = 'none';
@@ -778,7 +824,8 @@ function openEditSkillModal(skillId) {
     submitBtn.onclick = async () => {
         const skillName = document.getElementById('editSkillNameInput').value.trim();
         const level = document.getElementById('editSkillLevelInput').value;
-        const category = document.getElementById('editSkillCategoryInput').value.trim();
+        const category = document.getElementById('editSkillCategoryInput').value;
+        const location = document.getElementById('editSkillLocationInput').value;
         const price = parseInt(document.getElementById('editSkillPriceInput').value) || 0;
         const desc = document.getElementById('editSkillDescInput').value.trim();
 
@@ -798,7 +845,8 @@ function openEditSkillModal(skillId) {
                 body: JSON.stringify({
                     skill_name: skillName,
                     skill_level: level,
-                    category: category || 'General',
+                    category: category,
+                    location: location,
                     description: desc,
                     price_per_session: price,
                     availability: 'Flexible'

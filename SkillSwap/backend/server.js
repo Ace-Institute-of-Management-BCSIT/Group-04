@@ -298,25 +298,43 @@ app.put("/api/users/me", verifyToken, async (req, res) => {
 
 // ====================== SKILL MANAGEMENT ======================
 
+const VALID_SKILL_LOCATIONS = ['Kathmandu', 'Lalitpur', 'Bhaktapur', 'Hetauda'];
+const VALID_SKILL_CATEGORIES = ['Development', 'Design', 'Marketing', 'Business', 'Language', 'Music', 'Cooking', 'Fitness', 'Other'];
+
+function normalizeSkillLocation(location) {
+    if (typeof location !== 'string') return 'Kathmandu';
+    const normalized = location.trim();
+    return VALID_SKILL_LOCATIONS.includes(normalized) ? normalized : 'Kathmandu';
+}
+
+function normalizeSkillCategory(category) {
+    if (typeof category !== 'string') return 'Other';
+    const normalized = category.trim();
+    return VALID_SKILL_CATEGORIES.includes(normalized) ? normalized : 'Other';
+}
+
 app.post("/api/users/skills", verifyToken, async (req, res) => {
     const userId = req.userId;
-    const { skill_name, skill_level, category, description, price_per_session, availability } = req.body;
+    const { skill_name, skill_level, category, description, price_per_session, availability, location } = req.body;
+    const finalLocation = normalizeSkillLocation(location);
+    const finalCategory = normalizeSkillCategory(category);
 
     const sql = `
         INSERT INTO skills 
         (provider_id, skill_name, category, description, skill_level, 
          price_per_session, location, availability)
-        VALUES ($1, $2, $3, $4, $5, $6, 'Kathmandu', $7)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `;
 
     try {
         await db.query(sql, [
             userId,
             skill_name,
-            category || 'General',
+            finalCategory,
             description,
             skill_level || 'Intermediate',
             price_per_session || 0,
+            finalLocation,
             availability || 'Flexible'
         ]);
         return res.json({ success: true, message: "Skill added successfully!" });
@@ -341,13 +359,15 @@ app.get("/api/users/skills", verifyToken, async (req, res) => {
 app.put("/api/users/skills/:id", verifyToken, async (req, res) => {
     const userId = req.userId;
     const skillId = req.params.id;
-    const { skill_name, skill_level, category, description, price_per_session, availability } = req.body;
+    const { skill_name, skill_level, category, description, price_per_session, availability, location } = req.body;
+    const finalLocation = normalizeSkillLocation(location);
+    const finalCategory = normalizeSkillCategory(category);
 
     const sql = `
         UPDATE skills 
         SET skill_name = $1, skill_level = $2, category = $3, 
-            description = $4, price_per_session = $5, availability = $6
-        WHERE skill_id = $7 AND provider_id = $8
+            description = $4, price_per_session = $5, availability = $6, location = $7
+        WHERE skill_id = $8 AND provider_id = $9
         RETURNING skill_id
     `;
 
@@ -355,10 +375,11 @@ app.put("/api/users/skills/:id", verifyToken, async (req, res) => {
         const { rows } = await db.query(sql, [
             skill_name,
             skill_level || 'Intermediate',
-            category || 'General',
+            finalCategory,
             description,
             price_per_session || 0,
             availability || 'Flexible',
+            finalLocation,
             skillId,
             userId
         ]);
@@ -523,7 +544,8 @@ app.get("/api/skills", async (req, res) => {
 });
 
 app.get("/api/skills/random", async (req, res) => {
-    const sql = `
+    const category = req.query.category;
+    let sql = `
         SELECT s.skill_id, s.skill_name, s.category, s.description, 
                s.skill_level, s.price_per_session, s.location, s.availability,
                u.full_name as provider_name, u.avatar, u.user_id as provider_id,
@@ -531,12 +553,18 @@ app.get("/api/skills/random", async (req, res) => {
         FROM skills s
         JOIN users u ON s.provider_id = u.user_id
         WHERE s.status = 'active'
-        ORDER BY RANDOM()
-        LIMIT 3
     `;
+    const params = [];
+
+    if (category && category !== 'all') {
+        sql += ` AND s.category = $1`;
+        params.push(category);
+    }
+
+    sql += ` ORDER BY RANDOM() LIMIT 3`;
 
     try {
-        const { rows: results } = await db.query(sql);
+        const { rows: results } = await db.query(sql, params);
         return res.json({ success: true, skills: results });
     } catch (err) {
         console.error("Random Skills Error:", err);

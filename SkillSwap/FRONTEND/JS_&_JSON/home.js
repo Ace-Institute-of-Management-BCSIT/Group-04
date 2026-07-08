@@ -18,16 +18,20 @@ function getInitials(fullName) {
     return fullName.substring(0, 2).toUpperCase();
 }
 
-async function loadRandomSkills() {
+async function loadRandomSkills(category) {
     const container = document.getElementById('homeSkillCards');
     if (!container) return;
 
     try {
-        const data = await window.api.request('/skills/random');
+        const query = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : '';
+        const data = await window.api.request(`/skills/random${query}`);
 
         if (!data.success || !data.skills || data.skills.length === 0) {
+            const message = category && category !== 'all'
+                ? `No ${category} skills available right now.`
+                : `No skills listed yet — be the first to add one!`;
             container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #7f8c8d;">
-                No skills listed yet — be the first to add one!
+                ${message}
             </div>`;
             return;
         }
@@ -68,9 +72,24 @@ async function loadRandomSkills() {
     }
 }
 
+function bindHomeCategoryFilters() {
+    document.querySelectorAll('.btn-filter').forEach((button) => {
+        button.addEventListener('click', () => {
+            const category = button.textContent.trim() === 'All'
+                ? null
+                : button.textContent.trim();
+            loadRandomSkills(category);
+        });
+    });
+}
+
 // Initialize on page load
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadRandomSkills);
+    document.addEventListener('DOMContentLoaded', () => {
+        loadRandomSkills();
+        bindHomeCategoryFilters();
+    });
 } else {
     loadRandomSkills();
+    bindHomeCategoryFilters();
 }

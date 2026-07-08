@@ -25,7 +25,9 @@ function groupSkillsByProvider(skills) {
         }
         map.get(skill.provider_id).teaching.push({
             name: skill.skill_name,
-            price: skill.price_per_session || 0
+            price: skill.price_per_session || 0,
+            location: skill.location || 'Kathmandu',
+            category: skill.category || ''
         });
     });
 
@@ -84,7 +86,10 @@ function renderUserCards() {
             <p class="user-bio">${user.bio || 'No bio added yet.'}</p>
             <div class="skill-section">
                 <strong>Can teach:</strong>
-                <div class="skill-tags">${user.teaching.map(skill => `<span class="skill-tag teaching">${skill.name} — Rs. ${skill.price}/hr</span>`).join('')}</div>
+                <div class="skill-tags">${user.teaching.map(skill => {
+                    const categoryLabel = skill.category ? ` [${skill.category}]` : '';
+                    return `<span class="skill-tag teaching">${skill.name}${categoryLabel} — Rs. ${skill.price}/hr (${skill.location})</span>`;
+                }).join('')}</div>
             </div>
             <div class="card-actions">
                 <button class="btn btn-primary view-profile-btn" data-id="${user.id}">View Profile</button>
@@ -114,9 +119,9 @@ function filterUsers() {
     filteredUsers = allUsers.filter(user => {
         const matchesSearch = !searchQuery ||
             user.name.toLowerCase().includes(searchQuery) ||
-            user.teaching.some(s => s.toLowerCase().includes(searchQuery));
+            user.teaching.some(s => s.name.toLowerCase().includes(searchQuery));
 
-        const matchesLocation = location === 'all' || user.location.includes(location);
+        const matchesLocation = location === 'all' || user.teaching.some(skill => skill.location === location);
         return matchesSearch && matchesLocation;
     });
 
