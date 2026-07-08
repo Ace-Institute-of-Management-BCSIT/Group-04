@@ -40,6 +40,7 @@ function showSection(name) {
 
     if (name === "users") loadUsers();
     if (name === "skills") loadSkills();
+    if (name === "messages") loadMessages();
 }
 
 document.querySelectorAll(".nav-link").forEach(link => {
@@ -64,8 +65,12 @@ function loadAdminIdentity() {
     }
 }
 
-// ===== Overview stats =====
-async function loadStats() {
+const deleteAllMessagesBtn = document.getElementById("deleteAllMessagesBtn");
+if (deleteAllMessagesBtn) {
+    deleteAllMessagesBtn.addEventListener("click", deleteAllMessages);
+}
+
+// ===== Overview stats =====nasync function loadStats() {
     try {
         const data = await adminFetch("/admin/stats");
         if (!data || !data.success) return;
@@ -111,6 +116,7 @@ async function loadUsers() {
                     <td data-label="Joined">${joined}</td>
                     <td data-label="Action">
                         <button class="btn-sm danger" data-delete-user="${u.user_id}">Remove</button>
+                        <button class="btn-sm secondary" data-clear-user-messages="${u.user_id}">Clear Chats</button>
                     </td>
                 </tr>
             `;
@@ -118,6 +124,10 @@ async function loadUsers() {
 
         tbody.querySelectorAll("[data-delete-user]").forEach(btn => {
             btn.addEventListener("click", () => deleteUser(btn.dataset.deleteUser));
+        });
+
+        tbody.querySelectorAll("[data-clear-user-messages]").forEach(btn => {
+            btn.addEventListener("click", () => clearUserMessages(btn.dataset.clearUserMessages));
         });
     } catch (err) {
         console.error("Failed to load users:", err);
@@ -176,6 +186,7 @@ async function loadSkills() {
                         <button class="btn-sm toggle" data-toggle-skill="${s.skill_id}" data-next-status="${nextStatus}">
                             ${isActive ? "Deactivate" : "Activate"}
                         </button>
+                        <button class="btn-sm danger" data-delete-skill="${s.skill_id}">Delete</button>
                     </td>
                 </tr>
             `;
@@ -184,9 +195,45 @@ async function loadSkills() {
         tbody.querySelectorAll("[data-toggle-skill]").forEach(btn => {
             btn.addEventListener("click", () => toggleSkillStatus(btn.dataset.toggleSkill, btn.dataset.nextStatus));
         });
+
+        tbody.querySelectorAll("[data-delete-skill]").forEach(btn => {
+            btn.addEventListener("click", () => deleteSkill(btn.dataset.deleteSkill));
+        });
     } catch (err) {
         console.error("Failed to load skills:", err);
         tbody.innerHTML = `<tr><td colspan="7" class="loading-row">Could not connect to server.</td></tr>`;
+    }
+}
+
+async function deleteSkill(skillId) {
+    if (!confirm("Delete this skill and all related bookings?")) return;
+    try {
+        const data = await adminFetch(`/admin/skills/${skillId}`, { method: "DELETE" });
+        if (data && data.success) {
+            loadSkills();
+            loadStats();
+        } else {
+            alert(data?.message || "Failed to delete skill.");
+        }
+    } catch (err) {
+        alert("Network error while deleting skill.");
+    }
+}
+
+async function clearUserMessages(userId) {
+    if (!confirm("Clear all chat history for this user?")) return;
+    try {
+        const data = await adminFetch(`/admin/messages/user/${userId}`, { method: "DELETE" });
+        if (data && data.success) {
+            loadUsers();
+            loadStats();
+            const activeSection = document.querySelector('.dashboard-section.active')?.id;
+            if (activeSection === 'messages-section') loadMessages();
+        } else {
+            alert(data?.message || "Failed to clear user messages.");
+        }
+    } catch (err) {
+        alert("Network error while clearing user messages.");
     }
 }
 
@@ -204,6 +251,74 @@ async function toggleSkillStatus(skillId, nextStatus) {
         }
     } catch (err) {
         alert("Network error while updating skill.");
+    }
+}
+
+async function loadMessages() {
+    const tbody = document.getElementById("messagesTableBody");
+    tbody.innerHTML = `<tr><td colspan="5" class="loading-row">Loading messages…</td></tr>`;
+
+    try {
+        const data = await adminFetch("/admin/messages");
+        if (!data || !data.success) {
+            tbody.innerHTML = `<tr><td colspan="5" class="loading-row">Could not load messages.</td></tr>`;
+            return;
+        }
+
+        document.getElementById("messagesCount").textContent = data.messages.length;
+        if (data.messages.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="loading-row">No messages found.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.messages.map(msg => `
+            <tr>
+                <td data-label="Sender">${escapeHtml(msg.sender_name)}</td>
+                <td data-label="Receiver">${escapeHtml(msg.receiver_name)}</td>
+                <td data-label="Message">${escapeHtml(msg.message_text)}</td>
+                <td data-label="Sent At">${new Date(msg.sent_at).toLocaleString()}</td>
+                <td data-label="Action">
+                    <button class="btn-sm danger" data-delete-message="${msg.message_id}">Delete</button>
+                </td>
+            </tr>
+        `).join("");
+
+        tbody.querySelectorAll("[data-delete-message]").forEach(btn => {
+            btn.addEventListener("click", () => deleteMessage(btn.dataset.deleteMessage));
+        });
+    } catch (err) {
+        console.error("Failed to load messages:", err);
+        tbody.innerHTML = `<tr><td colspan="5" class="loading-row">Could not connect to server.</td></tr>`;
+    }
+}
+
+async function deleteMessage(messageId) {
+    if (!confirm("Delete this message permanently?")) return;
+    try {
+        const data = await adminFetch(`/admin/messages/${messageId}`, { method: "DELETE" });
+        if (data && data.success) {
+            loadMessages();
+            loadStats();
+        } else {
+            alert(data?.message || "Failed to delete message.");
+        }
+    } catch (err) {
+        alert("Network error while deleting message.");
+    }
+}
+
+async function deleteAllMessages() {
+    if (!confirm("Delete every message in the system? This cannot be undone.")) return;
+    try {
+        const data = await adminFetch(`/admin/messages`, { method: "DELETE" });
+        if (data && data.success) {
+            loadMessages();
+            loadStats();
+        } else {
+            alert(data?.message || "Failed to delete all messages.");
+        }
+    } catch (err) {
+        alert("Network error while deleting all messages.");
     }
 }
 

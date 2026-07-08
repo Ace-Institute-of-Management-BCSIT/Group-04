@@ -22,6 +22,7 @@
                 <a href="#" class="nav-link active" data-section="overview">Overview</a>
                 <a href="#" class="nav-link" data-section="users">Users</a>
                 <a href="#" class="nav-link" data-section="skills">Skills</a>
+                <a href="#" class="nav-link" data-section="messages">Messages</a>
             </nav>
 
             <div class="nav-actions">
@@ -117,6 +118,38 @@
                             </thead>
                             <tbody id="skillsTableBody">
                                 <tr><td colspan="7" class="loading-row">Loading skills…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== MESSAGES SECTION ===== -->
+            <section id="messages-section" class="dashboard-section">
+                <div class="card table-card">
+                    <div class="table-card-header">
+                        <div>
+                            <h3>Chat History</h3>
+                            <p class="subtext">Manage and clear conversation history for the platform.</p>
+                        </div>
+                        <div class="header-actions">
+                            <span class="count-pill" id="messagesCount">0</span>
+                            <button class="btn btn-outline danger" id="deleteAllMessagesBtn">Delete All Messages</button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Sender</th>
+                                    <th>Receiver</th>
+                                    <th>Message</th>
+                                    <th>Sent At</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="messagesTableBody">
+                                <tr><td colspan="5" class="loading-row">Loading messages…</td></tr>
                             </tbody>
                         </table>
                     </div>

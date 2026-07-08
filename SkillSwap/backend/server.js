@@ -691,12 +691,117 @@ app.get("/admin/users", verifyAdminToken, async (req, res) => {
 
 app.delete("/admin/users/:id", verifyAdminToken, async (req, res) => {
     const { id } = req.params;
+
     try {
-        await db.query(`DELETE FROM users WHERE user_id = $1`, [id]);
-        return res.json({ success: true, message: "User removed" });
+        await db.query("BEGIN");
+
+        await db.query(
+            `DELETE FROM payments WHERE booking_id IN (
+                SELECT booking_id FROM bookings WHERE seeker_id = $1 OR skill_id IN (SELECT skill_id FROM skills WHERE provider_id = $1)
+            )`,
+            [id]
+        );
+
+        await db.query(
+            `DELETE FROM reviews WHERE booking_id IN (
+                SELECT booking_id FROM bookings WHERE seeker_id = $1 OR skill_id IN (SELECT skill_id FROM skills WHERE provider_id = $1)
+            )`,
+            [id]
+        );
+
+        await db.query(
+            `DELETE FROM bookings WHERE seeker_id = $1 OR skill_id IN (SELECT skill_id FROM skills WHERE provider_id = $1)`,
+            [id]
+        );
+
+        await db.query(
+            `DELETE FROM messages WHERE sender_id = $1 OR receiver_id = $1`,
+            [id]
+        );
+
+        await db.query(
+            `DELETE FROM skills WHERE provider_id = $1`,
+            [id]
+        );
+
+        await db.query(
+            `DELETE FROM users WHERE user_id = $1`,
+            [id]
+        );
+
+        await db.query("COMMIT");
+        return res.json({ success: true, message: "User and all associated data removed." });
     } catch (err) {
+        await db.query("ROLLBACK");
         console.error("Admin Delete User Error:", err);
-        return res.status(500).json({ success: false, message: "Failed to delete user. They may have related records (skills, bookings, messages)." });
+        return res.status(500).json({ success: false, message: "Failed to delete user and associated data." });
+    }
+});
+
+app.get("/admin/messages", verifyAdminToken, async (req, res) => {
+    try {
+        const { rows } = await db.query(
+            `SELECT m.message_id, m.message_text, m.sent_at,
+                    s.user_id AS sender_id, s.full_name AS sender_name,
+                    r.user_id AS receiver_id, r.full_name AS receiver_name
+             FROM messages m
+             JOIN users s ON m.sender_id = s.user_id
+             JOIN users r ON m.receiver_id = r.user_id
+             ORDER BY m.sent_at DESC`
+        );
+        return res.json({ success: true, messages: rows });
+    } catch (err) {
+        console.error("Admin Messages Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to load messages" });
+    }
+});
+
+app.delete("/admin/messages/:id", verifyAdminToken, async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query(`DELETE FROM messages WHERE message_id = $1`, [id]);
+        return res.json({ success: true, message: "Message deleted." });
+    } catch (err) {
+        console.error("Admin Delete Message Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to delete message." });
+    }
+});
+
+app.delete("/admin/messages", verifyAdminToken, async (req, res) => {
+    try {
+        await db.query(`DELETE FROM messages`);
+        return res.json({ success: true, message: "All messages deleted." });
+    } catch (err) {
+        console.error("Admin Delete All Messages Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to delete all messages." });
+    }
+});
+
+app.delete("/admin/messages/user/:id", verifyAdminToken, async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query(`DELETE FROM messages WHERE sender_id = $1 OR receiver_id = $1`, [id]);
+        return res.json({ success: true, message: "User messages cleared." });
+    } catch (err) {
+        console.error("Admin Delete User Messages Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to clear user messages." });
+    }
+});
+
+app.delete("/admin/skills/:id", verifyAdminToken, async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query("BEGIN");
+        await db.query(`DELETE FROM payments WHERE booking_id IN (SELECT booking_id FROM bookings WHERE skill_id = $1)`, [id]);
+        await db.query(`DELETE FROM reviews WHERE booking_id IN (SELECT booking_id FROM bookings WHERE skill_id = $1)`, [id]);
+        await db.query(`DELETE FROM bookings WHERE skill_id = $1`, [id]);
+        await db.query(`DELETE FROM skills WHERE skill_id = $1`, [id]);
+        await db.query("COMMIT");
+        return res.json({ success: true, message: "Skill removed." });
+    } catch (err) {
+        await db.query("ROLLBACK");
+        console.error("Admin Delete Skill Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to delete skill." });
     }
 });
 
