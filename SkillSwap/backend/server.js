@@ -338,6 +338,63 @@ app.get("/api/users/skills", verifyToken, async (req, res) => {
     }
 });
 
+app.put("/api/users/skills/:id", verifyToken, async (req, res) => {
+    const userId = req.userId;
+    const skillId = req.params.id;
+    const { skill_name, skill_level, category, description, price_per_session, availability } = req.body;
+
+    const sql = `
+        UPDATE skills 
+        SET skill_name = $1, skill_level = $2, category = $3, 
+            description = $4, price_per_session = $5, availability = $6
+        WHERE skill_id = $7 AND provider_id = $8
+        RETURNING skill_id
+    `;
+
+    try {
+        const { rows } = await db.query(sql, [
+            skill_name,
+            skill_level || 'Intermediate',
+            category || 'General',
+            description,
+            price_per_session || 0,
+            availability || 'Flexible',
+            skillId,
+            userId
+        ]);
+
+        if (rows.length === 0) {
+            return res.status(403).json({ success: false, message: "Skill not found or not authorized to edit" });
+        }
+
+        return res.json({ success: true, message: "Skill updated successfully!" });
+    } catch (err) {
+        console.error("Update Skill Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to update skill" });
+    }
+});
+
+app.delete("/api/users/skills/:id", verifyToken, async (req, res) => {
+    const userId = req.userId;
+    const skillId = req.params.id;
+
+    const sql = `DELETE FROM skills WHERE skill_id = $1 AND provider_id = $2 RETURNING skill_id`;
+
+    try {
+        const { rows } = await db.query(sql, [skillId, userId]);
+
+        if (rows.length === 0) {
+            return res.status(403).json({ success: false, message: "Skill not found or not authorized to delete" });
+        }
+
+        return res.json({ success: true, message: "Skill deleted successfully!" });
+    } catch (err) {
+        console.error("Delete Skill Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to delete skill" });
+    }
+});
+
+
 app.get("/api/users/:id/skills", async (req, res) => {
     const providerId = req.params.id;
     const sql = `
@@ -461,6 +518,28 @@ app.get("/api/skills", async (req, res) => {
         const { rows: results } = await db.query(sql);
         return res.json({ success: true, skills: results });
     } catch (err) {
+        return res.status(500).json({ success: false, message: "Database error" });
+    }
+});
+
+app.get("/api/skills/random", async (req, res) => {
+    const sql = `
+        SELECT s.skill_id, s.skill_name, s.category, s.description, 
+               s.skill_level, s.price_per_session, s.location, s.availability,
+               u.full_name as provider_name, u.avatar, u.user_id as provider_id,
+               u.bio as provider_bio, u.rating, u.total_reviews
+        FROM skills s
+        JOIN users u ON s.provider_id = u.user_id
+        WHERE s.status = 'active'
+        ORDER BY RANDOM()
+        LIMIT 3
+    `;
+
+    try {
+        const { rows: results } = await db.query(sql);
+        return res.json({ success: true, skills: results });
+    } catch (err) {
+        console.error("Random Skills Error:", err);
         return res.status(500).json({ success: false, message: "Database error" });
     }
 });

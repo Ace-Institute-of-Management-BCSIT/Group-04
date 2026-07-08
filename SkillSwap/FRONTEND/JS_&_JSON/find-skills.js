@@ -23,7 +23,10 @@ function groupSkillsByProvider(skills) {
                 teaching: []
             });
         }
-        map.get(skill.provider_id).teaching.push(skill.skill_name);
+        map.get(skill.provider_id).teaching.push({
+            name: skill.skill_name,
+            price: skill.price_per_session || 0
+        });
     });
 
     return Array.from(map.values());
@@ -81,7 +84,7 @@ function renderUserCards() {
             <p class="user-bio">${user.bio || 'No bio added yet.'}</p>
             <div class="skill-section">
                 <strong>Can teach:</strong>
-                <div class="skill-tags">${user.teaching.map(skill => `<span class="skill-tag teaching">${skill}</span>`).join('')}</div>
+                <div class="skill-tags">${user.teaching.map(skill => `<span class="skill-tag teaching">${skill.name} — Rs. ${skill.price}/hr</span>`).join('')}</div>
             </div>
             <div class="card-actions">
                 <button class="btn btn-primary view-profile-btn" data-id="${user.id}">View Profile</button>

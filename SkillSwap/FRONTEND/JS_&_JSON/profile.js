@@ -478,7 +478,7 @@ function bindAddSkillButton() {
         const modalHTML = `
         <div id="addSkillModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
              background:rgba(0,0,0,0.5); z-index:1001; justify-content:center; align-items:center; padding:15px;">
-            <div style="background:var(--card); border: 1px solid var(--border); width:100%; max-width:460px; border-radius:16px; padding:30px; box-shadow: var(--shadow); position:relative;">
+            <div style="background:var(--card); border: 1px solid var(--border); width:100%; max-width:460px; border-radius:16px; padding:30px; box-shadow: var(--shadow); position:relative; max-height:90vh; overflow-y:auto;">
                 <button id="closeAddSkillModal" style="position:absolute; top:14px; right:16px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--muted-foreground); line-height:1;">×</button>
                 <h3 style="margin:0 0 6px 0; font-size:1.4rem; color: var(--foreground);">Add a New Skill</h3>
                 <p style="margin:0 0 22px 0; color:var(--muted-foreground); font-size:0.9rem;">Share what you can offer to the SkillSwap community.</p>
@@ -498,6 +498,18 @@ function bindAddSkillButton() {
                         <option value="Advanced">🔥 Advanced</option>
                         <option value="Expert">🏆 Expert</option>
                     </select>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Category</label>
+                    <input type="text" id="skillCategoryInput" placeholder="e.g. Development, Design, Marketing…"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
+                        onfocus="this.style.borderColor='#2ecc71'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Price per Session (Rs)</label>
+                    <input type="number" id="skillPriceInput" placeholder="e.g. 500, 1000, 1500"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
+                        onfocus="this.style.borderColor='#2ecc71'" onblur="this.style.borderColor='var(--border)'" value="0">
                 </div>
                 <div style="margin-bottom:22px;">
                     <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Short Description</label>
@@ -525,6 +537,8 @@ function bindAddSkillButton() {
     const openModal  = () => {
         document.getElementById('skillNameInput').value  = '';
         document.getElementById('skillLevelInput').value = 'Intermediate';
+        document.getElementById('skillCategoryInput').value = '';
+        document.getElementById('skillPriceInput').value = '0';
         document.getElementById('skillDescInput').value  = '';
         errorBox.style.display = 'none';
         modal.style.display    = 'flex';
@@ -542,6 +556,8 @@ function bindAddSkillButton() {
     submitBtn.addEventListener('click', async () => {
         const skillName = document.getElementById('skillNameInput').value.trim();
         const level     = document.getElementById('skillLevelInput').value;
+        const category  = document.getElementById('skillCategoryInput').value.trim();
+        const price     = parseInt(document.getElementById('skillPriceInput').value) || 0;
         const desc      = document.getElementById('skillDescInput').value.trim();
 
         if (!skillName) {
@@ -558,7 +574,14 @@ function bindAddSkillButton() {
         try {
             const data = await window.api.request('/users/skills', {
                 method: 'POST',
-                body: JSON.stringify({ skill_name: skillName, skill_level: level, description: desc, status: 'active' })
+                body: JSON.stringify({ 
+                    skill_name: skillName, 
+                    skill_level: level, 
+                    category: category || 'General',
+                    description: desc, 
+                    price_per_session: price,
+                    status: 'active' 
+                })
             });
 
             if (data.success) {
@@ -637,6 +660,8 @@ function bindModalControls() {
 
 // ====================== MY SKILLS LIST ======================
 
+let allMySkills = [];
+
 async function loadMySkills() {
     const skillsList = document.getElementById('skillsList');
     if (!skillsList) return;
@@ -644,20 +669,173 @@ async function loadMySkills() {
     try {
         const data = await window.api.request('/users/skills');
         if (data.success && data.skills && data.skills.length > 0) {
+            allMySkills = data.skills;
             skillsList.innerHTML = data.skills.map(skill => `
                 <div style="padding:14px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
+                    <div style="flex:1;">
                         <strong style="font-size:1rem; color: var(--foreground);">${skill.skill_name}</strong>
                         <span style="margin-left:10px; background:#e8f8f0; color:#2ecc71; padding:2px 10px; border-radius:20px; font-size:0.78rem; font-weight:600;">${skill.skill_level}</span>
                         <p style="margin:5px 0 0 0; color:var(--muted-foreground); font-size:0.88rem;">${skill.description || ''}</p>
+                        <p style="margin:3px 0 0 0; color:var(--muted-foreground); font-size:0.85rem;"><strong>Rs. ${skill.price_per_session || 0}/hr</strong></p>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-left:10px;">
+                        <button onclick="openEditSkillModal(${skill.skill_id})" style="background:#3498db; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600;">Edit</button>
+                        <button onclick="deleteSkill(${skill.skill_id})" style="background:#e74c3c; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600;">Delete</button>
                     </div>
                 </div>
             `).join('');
         } else {
+            allMySkills = [];
             skillsList.innerHTML = '<p style="color:var(--muted-foreground);">No skills added yet.</p>';
         }
     } catch (e) {
         skillsList.innerHTML = '<p style="color:#e74c3c;">Failed to load skills.</p>';
+    }
+}
+
+function openEditSkillModal(skillId) {
+    const skill = allMySkills.find(s => s.skill_id === skillId);
+    if (!skill) return;
+
+    if (!document.getElementById('editSkillModal')) {
+        const modalHTML = `
+        <div id="editSkillModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+             background:rgba(0,0,0,0.5); z-index:1001; justify-content:center; align-items:center; padding:15px;">
+            <div style="background:var(--card); border: 1px solid var(--border); width:100%; max-width:460px; border-radius:16px; padding:30px; box-shadow: var(--shadow); position:relative; max-height:90vh; overflow-y:auto;">
+                <button id="closeEditSkillModal" style="position:absolute; top:14px; right:16px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--muted-foreground); line-height:1;">×</button>
+                <h3 style="margin:0 0 6px 0; font-size:1.4rem; color: var(--foreground);">Edit Skill</h3>
+                <p style="margin:0 0 22px 0; color:var(--muted-foreground); font-size:0.9rem;">Update your skill details.</p>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Skill Name <span style="color:#e74c3c;">*</span></label>
+                    <input type="text" id="editSkillNameInput" placeholder="e.g. Web Development, Graphic Design…"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
+                        onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Proficiency Level</label>
+                    <select id="editSkillLevelInput"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; background:var(--background); color: var(--foreground); outline:none; cursor:pointer;"
+                        onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
+                        <option value="Beginner">🌱 Beginner</option>
+                        <option value="Intermediate">⚡ Intermediate</option>
+                        <option value="Advanced">🔥 Advanced</option>
+                        <option value="Expert">🏆 Expert</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Category</label>
+                    <input type="text" id="editSkillCategoryInput" placeholder="e.g. Development, Design, Marketing…"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
+                        onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Price per Session (Rs)</label>
+                    <input type="number" id="editSkillPriceInput" placeholder="e.g. 500, 1000, 1500"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
+                        onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div style="margin-bottom:22px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Short Description</label>
+                    <textarea id="editSkillDescInput" rows="3" placeholder="Briefly describe your experience with this skill…"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; resize:vertical; outline:none; background: var(--background); color: var(--foreground);"></textarea>
+                </div>
+                <div id="editSkillError" style="display:none; color:#e74c3c; font-size:0.85rem; margin-bottom:12px; padding:8px 12px; background:#fdf0f0; border-radius:6px;"></div>
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button id="cancelEditSkillBtn" style="background:var(--secondary); color:var(--foreground); border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.9rem;">Cancel</button>
+                    <button id="submitEditSkillBtn" style="background:#3498db; color:white; border:none; padding:10px 22px; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.9rem;">
+                        <span id="editSkillBtnText">Save Changes</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+
+    const modal = document.getElementById('editSkillModal');
+    document.getElementById('editSkillNameInput').value = skill.skill_name;
+    document.getElementById('editSkillLevelInput').value = skill.skill_level;
+    document.getElementById('editSkillCategoryInput').value = skill.category || '';
+    document.getElementById('editSkillPriceInput').value = skill.price_per_session || 0;
+    document.getElementById('editSkillDescInput').value = skill.description || '';
+    document.getElementById('editSkillError').style.display = 'none';
+    modal.style.display = 'flex';
+
+    const closeBtn = document.getElementById('closeEditSkillModal');
+    const cancelBtn = document.getElementById('cancelEditSkillBtn');
+    const submitBtn = document.getElementById('submitEditSkillBtn');
+    const errorBox = document.getElementById('editSkillError');
+
+    const closeModal = () => modal.style.display = 'none';
+    closeBtn.onclick = closeModal;
+    cancelBtn.onclick = closeModal;
+    modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+    submitBtn.onclick = async () => {
+        const skillName = document.getElementById('editSkillNameInput').value.trim();
+        const level = document.getElementById('editSkillLevelInput').value;
+        const category = document.getElementById('editSkillCategoryInput').value.trim();
+        const price = parseInt(document.getElementById('editSkillPriceInput').value) || 0;
+        const desc = document.getElementById('editSkillDescInput').value.trim();
+
+        if (!skillName) {
+            errorBox.textContent = 'Please enter a skill name.';
+            errorBox.style.display = 'block';
+            return;
+        }
+
+        submitBtn.disabled = true;
+        document.getElementById('editSkillBtnText').textContent = 'Saving…';
+        errorBox.style.display = 'none';
+
+        try {
+            const data = await window.api.request(`/users/skills/${skillId}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    skill_name: skillName,
+                    skill_level: level,
+                    category: category || 'General',
+                    description: desc,
+                    price_per_session: price,
+                    availability: 'Flexible'
+                })
+            });
+
+            if (data.success) {
+                alert('Skill updated successfully!');
+                closeModal();
+                loadMySkills();
+            } else {
+                errorBox.textContent = data.message || 'Failed to update skill.';
+                errorBox.style.display = 'block';
+            }
+        } catch (e) {
+            errorBox.textContent = 'Cannot connect to server. Make sure the backend is running.';
+            errorBox.style.display = 'block';
+        } finally {
+            submitBtn.disabled = false;
+            document.getElementById('editSkillBtnText').textContent = 'Save Changes';
+        }
+    };
+}
+
+async function deleteSkill(skillId) {
+    if (!confirm('Are you sure you want to delete this skill? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const data = await window.api.request(`/users/skills/${skillId}`, {
+            method: 'DELETE'
+        });
+
+        if (data.success) {
+            alert('Skill deleted successfully!');
+            loadMySkills();
+        } else {
+            alert(data.message || 'Failed to delete skill.');
+        }
+    } catch (e) {
+        alert('Cannot connect to server.');
     }
 }
 
