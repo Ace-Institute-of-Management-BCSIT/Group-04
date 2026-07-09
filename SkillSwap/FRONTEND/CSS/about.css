@@ -542,7 +542,60 @@ body::before {
     border-color: var(--green);
     transform: translateY(-2px);
 }
+/* =========================================
+   Why Choose SkillSwap - Interactive List
+   ========================================= */
+.why-choose-section {
+    margin-bottom: 60px;
+}
 
+.about-list {
+    list-style: none; /* Removes default bullet points */
+    padding: 0;
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.about-list li {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 24px;
+    background: var(--background); /* Pops out slightly against the section card */
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Sleek slide-right hover animation */
+.about-list li:hover {
+    transform: translateX(8px); 
+    border-color: rgba(16, 185, 129, 0.4); /* Subtle primary color glow */
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.list-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Uses your existing primary gradient theme */
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.3));
+    color: var(--primary);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.about-list li span {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 1.05rem;
+    line-height: 1.4;
+}
 @media (max-width: 1100px) {
     .header-content {
         padding: 0 18px;
