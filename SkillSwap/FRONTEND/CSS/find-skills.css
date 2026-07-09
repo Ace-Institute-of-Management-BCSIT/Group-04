@@ -766,3 +766,16 @@ body::before {
         padding: 40px 16px;
     }
 }
+/* Hide the hamburger menu on desktop (screens wider than 900px) */
+@media (min-width: 901px) {
+    .nav-toggle {
+        display: none !important;
+    }
+}
+
+/* Optional: Ensure the navigation links show up normally on desktop */
+@media (min-width: 901px) {
+    .header .nav {
+        display: flex !important; /* Or whatever your default layout is */
+    }
+}

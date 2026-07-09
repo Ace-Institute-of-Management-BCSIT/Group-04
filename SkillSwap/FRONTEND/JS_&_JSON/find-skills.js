@@ -128,6 +128,7 @@ function filterUsers() {
 }
 
 // Theme Toggle
+(function () {
 const themeToggle = document.getElementById('themeToggle');
 const html = document.documentElement;
 
@@ -147,3 +148,4 @@ themeToggle.addEventListener('click', () => {
 document.getElementById('searchInput').addEventListener('input', filterUsers);
 document.getElementById('locationFilter').addEventListener('change', filterUsers);
 loadSkills();
+})();

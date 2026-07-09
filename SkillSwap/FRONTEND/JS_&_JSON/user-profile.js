@@ -278,6 +278,7 @@ function setupTabs() {
 }
 
 // Theme toggle
+(function () {
 const themeToggle = document.getElementById('themeToggle');
 const html = document.documentElement;
 const savedTheme = localStorage.getItem('theme');
@@ -287,5 +288,5 @@ themeToggle.addEventListener('click', () => {
     html.classList.toggle('dark');
     localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
 });
-
+})();
 loadUserProfile();

@@ -1,3 +1,4 @@
+(function () {
 const themeToggle = document.getElementById('themeToggle');
 const html = document.documentElement;
 
@@ -87,3 +88,4 @@ document.querySelectorAll('.btn-filter').forEach((button) => {
         this.classList.add('active');
     });
 });
+})();

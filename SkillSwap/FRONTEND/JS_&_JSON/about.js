@@ -1,3 +1,4 @@
+(function () {
 const themeToggle = document.getElementById('themeToggle');
 const html = document.documentElement;
 
@@ -15,3 +16,4 @@ if (themeToggle) {
         localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
     });
 }
+})();
