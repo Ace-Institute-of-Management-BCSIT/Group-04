@@ -218,6 +218,10 @@
     padding: 28px;
     position: relative;
     box-shadow: var(--shadow);
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 }
 
 .modal-close {
@@ -229,6 +233,13 @@
     color: var(--muted);
     font-size: 1.5rem;
     cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.modal-close:hover,
+.modal-close:focus {
+    color: var(--foreground);
+    outline: none;
 }
 
 .modal-content h3 {
@@ -251,6 +262,7 @@
     margin-bottom: 8px;
     color: var(--foreground);
     font-weight: 600;
+    font-size: 0.95rem;
 }
 
 .form-group select,
@@ -258,10 +270,44 @@
     width: 100%;
     padding: 12px 14px;
     border-radius: 10px;
-    border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--glass-border);
+    background: rgba(15, 23, 42, 0.9);
     color: var(--foreground);
     box-sizing: border-box;
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.form-group select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--foreground) 50%), linear-gradient(135deg, var(--foreground) 50%, transparent 50%);
+    background-position: calc(100% - 20px) calc(50% - 2px), calc(100% - 14px) calc(50% - 2px);
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+    padding-right: 40px;
+}
+
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+    outline: none;
+    background: rgba(15, 23, 42, 0.95);
+}
+
+.form-group select option {
+    background: #1e1e2f;
+    color: #f8fafc;
+}
+
+.form-group select option:checked,
+.form-group select option:hover,
+.form-group select option:focus {
+    background: linear-gradient(90deg, #10b981, #34d399);
+    color: #ffffff;
 }
 
 .form-group textarea {
@@ -279,6 +325,7 @@
     padding: 10px 12px;
     border-radius: 8px;
     font-size: 0.92rem;
+    border: 1px solid transparent;
 }
 
 .form-message.success {
@@ -300,4 +347,25 @@
 
 .modal-actions .btn {
     min-width: 120px;
+}
+
+@media (max-width: 576px) {
+    .modal-content {
+        padding: 22px 18px;
+        border-radius: 16px;
+    }
+
+    .modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .modal-actions .btn {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .form-group select,
+    .form-group textarea {
+        font-size: 0.95rem;
+    }
 }
