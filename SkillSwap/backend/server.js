@@ -1030,6 +1030,13 @@ app.post("/api/bookings/:id/session-control", async (req, res) => {
             [bookingId]
         );
 
+        await db.query(
+            `UPDATE users
+             SET total_sessions = COALESCE(total_sessions, 0) + 1
+             WHERE user_id = $1`,
+            [booking.provider_id]
+        );
+
         return res.json({
             success: true,
             message: "Session completed.",
