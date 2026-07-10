@@ -58,6 +58,39 @@
         </div>
     </main>
 
+    <div id="reportModal" class="modal hidden" aria-hidden="true">
+        <div class="modal-content glass">
+            <button class="modal-close" id="closeReportModal" type="button" aria-label="Close report dialog">×</button>
+            <h3>Report User</h3>
+            <p class="modal-subtext">Let us know why you are reporting this profile.</p>
+
+            <div class="form-group">
+                <label for="reportReason">Reason</label>
+                <select id="reportReason">
+                    <option value="">Select a reason</option>
+                    <option value="Spam">Spam</option>
+                    <option value="Fake Profile">Fake Profile</option>
+                    <option value="Harassment">Harassment</option>
+                    <option value="Inappropriate Content">Inappropriate Content</option>
+                    <option value="Scam or Fraud">Scam or Fraud</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group hidden" id="reportDescriptionGroup">
+                <label for="reportDescription">Details</label>
+                <textarea id="reportDescription" rows="4" placeholder="Please tell us more..."></textarea>
+            </div>
+
+            <div class="form-message hidden" id="reportMessage"></div>
+
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="cancelReportBtn" type="button">Cancel</button>
+                <button class="btn btn-primary" id="submitReportBtn" type="button">Submit Report</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         <!-- Same footer as find-skills.html -->
         <div class="footer-inner">

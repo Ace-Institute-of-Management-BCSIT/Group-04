@@ -23,6 +23,7 @@
                 <a href="#" class="nav-link" data-section="users">Users</a>
                 <a href="#" class="nav-link" data-section="skills">Skills</a>
                 <a href="#" class="nav-link" data-section="messages">Messages</a>
+                <a href="#" class="nav-link" data-section="reports">Reports</a>
             </nav>
 
             <div class="nav-actions">
@@ -150,6 +151,37 @@
                             </thead>
                             <tbody id="messagesTableBody">
                                 <tr><td colspan="5" class="loading-row">Loading messages…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== REPORTS SECTION ===== -->
+            <section id="reports-section" class="dashboard-section">
+                <div class="card table-card">
+                    <div class="table-card-header">
+                        <div>
+                            <h3>User Reports</h3>
+                            <p class="subtext">Review and manage reported user accounts.</p>
+                        </div>
+                        <span class="count-pill" id="reportsCount">0</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Reporter</th>
+                                    <th>Reported User</th>
+                                    <th>Reason</th>
+                                    <th>Description</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportsTableBody">
+                                <tr><td colspan="7" class="loading-row">Loading reports…</td></tr>
                             </tbody>
                         </table>
                     </div>

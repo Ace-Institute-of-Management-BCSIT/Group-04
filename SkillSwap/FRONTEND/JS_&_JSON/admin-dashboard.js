@@ -41,6 +41,7 @@ function showSection(name) {
     if (name === "users") loadUsers();
     if (name === "skills") loadSkills();
     if (name === "messages") loadMessages();
+    if (name === "reports") loadReports();
 }
 
 document.querySelectorAll(".nav-link").forEach(link => {
@@ -252,6 +253,83 @@ async function toggleSkillStatus(skillId, nextStatus) {
         }
     } catch (err) {
         alert("Network error while updating skill.");
+    }
+}
+
+async function loadReports() {
+    const tbody = document.getElementById("reportsTableBody");
+    tbody.innerHTML = `<tr><td colspan="7" class="loading-row">Loading reports…</td></tr>`;
+
+    try {
+        const data = await adminFetch("/admin/reports");
+        if (!data || !data.success) {
+            tbody.innerHTML = `<tr><td colspan="7" class="loading-row">Could not load reports.</td></tr>`;
+            return;
+        }
+
+        document.getElementById("reportsCount").textContent = data.reports.length;
+        if (data.reports.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="loading-row">No reports found.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.reports.map(report => `
+            <tr>
+                <td data-label="Reporter">${escapeHtml(report.reporter_name)}</td>
+                <td data-label="Reported User">${escapeHtml(report.reported_user_name)}</td>
+                <td data-label="Reason">${escapeHtml(report.reason)}</td>
+                <td data-label="Description">${escapeHtml(report.description || "—")}</td>
+                <td data-label="Date">${new Date(report.created_at).toLocaleString()}</td>
+                <td data-label="Status">${escapeHtml(report.status || "Pending")}</td>
+                <td data-label="Action">
+                    <button class="btn-sm toggle" data-review-report="${report.report_id}">Mark Reviewed</button>
+                    <button class="btn-sm danger" data-delete-report="${report.report_id}">Delete</button>
+                </td>
+            </tr>
+        `).join("");
+
+        tbody.querySelectorAll("[data-review-report]").forEach(btn => {
+            btn.addEventListener("click", () => reviewReport(btn.dataset.reviewReport));
+        });
+
+        tbody.querySelectorAll("[data-delete-report]").forEach(btn => {
+            btn.addEventListener("click", () => deleteReport(btn.dataset.deleteReport));
+        });
+    } catch (err) {
+        console.error("Failed to load reports:", err);
+        tbody.innerHTML = `<tr><td colspan="7" class="loading-row">Could not connect to server.</td></tr>`;
+    }
+}
+
+async function reviewReport(reportId) {
+    try {
+        const data = await adminFetch(`/admin/reports/${reportId}/status`, {
+            method: "PUT",
+            body: JSON.stringify({ status: "Reviewed" })
+        });
+        if (data && data.success) {
+            loadReports();
+            loadStats();
+        } else {
+            alert(data?.message || "Failed to update report.");
+        }
+    } catch (err) {
+        alert("Network error while updating report.");
+    }
+}
+
+async function deleteReport(reportId) {
+    if (!confirm("Delete this report?")) return;
+    try {
+        const data = await adminFetch(`/admin/reports/${reportId}`, { method: "DELETE" });
+        if (data && data.success) {
+            loadReports();
+            loadStats();
+        } else {
+            alert(data?.message || "Failed to delete report.");
+        }
+    } catch (err) {
+        alert("Network error while deleting report.");
     }
 }
 

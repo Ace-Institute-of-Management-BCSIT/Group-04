@@ -60,11 +60,33 @@ async function ensureBookingSessionColumns() {
     }
 }
 
+async function ensureReportsTable() {
+    const sql = `
+        CREATE TABLE IF NOT EXISTS reports (
+            report_id SERIAL PRIMARY KEY,
+            reporter_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+            reported_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+            reason VARCHAR(100) NOT NULL,
+            description TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            status VARCHAR(30) DEFAULT 'Pending'
+        )
+    `;
+
+    try {
+        await db.query(sql);
+        console.log("Reports table ready");
+    } catch (err) {
+        console.error("Reports schema setup failed:", err.message);
+    }
+}
+
 function generateSessionToken() {
     return crypto.randomBytes(24).toString("hex");
 }
 
 ensureBookingSessionColumns();
+ensureReportsTable();
 
 // ====================== ENCRYPTION HELPERS ======================
 // Uses AES-256-CBC. Key must be 32 bytes (64 hex chars) in .env as ENCRYPTION_KEY.
@@ -632,6 +654,54 @@ app.get("/api/messages/:otherUserId", verifyToken, async (req, res) => {
     }
 });
 
+// ====================== REPORT ROUTES ======================
+
+app.post("/api/reports", verifyToken, async (req, res) => {
+    const reporterId = req.userId;
+    const { reported_user_id, reason, description } = req.body;
+
+    if (!reported_user_id) {
+        return res.status(400).json({ success: false, message: "Reported user is required." });
+    }
+
+    const normalizedReason = typeof reason === 'string' ? reason.trim() : '';
+    const normalizedDescription = typeof description === 'string' ? description.trim() : '';
+
+    if (!normalizedReason) {
+        return res.status(400).json({ success: false, message: "Reason is required." });
+    }
+
+    if (normalizedReason === 'Other' && !normalizedDescription) {
+        return res.status(400).json({ success: false, message: "Please describe the issue." });
+    }
+
+    if (Number(reporterId) === Number(reported_user_id)) {
+        return res.status(400).json({ success: false, message: "You cannot report yourself." });
+    }
+
+    try {
+        const { rows: userRows } = await db.query(
+            `SELECT user_id FROM users WHERE user_id = $1`,
+            [reported_user_id]
+        );
+
+        if (userRows.length === 0) {
+            return res.status(404).json({ success: false, message: "Reported user not found." });
+        }
+
+        await db.query(
+            `INSERT INTO reports (reporter_id, reported_user_id, reason, description, status)
+             VALUES ($1, $2, $3, $4, 'Pending')`,
+            [reporterId, reported_user_id, normalizedReason, normalizedDescription || null]
+        );
+
+        return res.json({ success: true, message: "Report submitted successfully." });
+    } catch (err) {
+        console.error("Report Submission Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to submit report." });
+    }
+});
+
 // ====================== ADMIN ROUTES ======================
 
 app.post("/admin/login", async (req, res) => {
@@ -775,6 +845,53 @@ app.get("/admin/messages", verifyAdminToken, async (req, res) => {
     } catch (err) {
         console.error("Admin Messages Error:", err);
         return res.status(500).json({ success: false, message: "Failed to load messages" });
+    }
+});
+
+app.get("/admin/reports", verifyAdminToken, async (req, res) => {
+    try {
+        const { rows } = await db.query(`
+            SELECT r.report_id, r.reason, r.description, r.created_at, r.status,
+                   reporter.full_name AS reporter_name,
+                   reported.full_name AS reported_user_name
+            FROM reports r
+            JOIN users reporter ON r.reporter_id = reporter.user_id
+            JOIN users reported ON r.reported_user_id = reported.user_id
+            ORDER BY r.created_at DESC
+        `);
+        return res.json({ success: true, reports: rows });
+    } catch (err) {
+        console.error("Admin Reports Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to load reports" });
+    }
+});
+
+app.put("/admin/reports/:id/status", verifyAdminToken, async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+        return res.status(400).json({ success: false, message: "Status is required." });
+    }
+
+    try {
+        await db.query(`UPDATE reports SET status = $1 WHERE report_id = $2`, [status, id]);
+        return res.json({ success: true, message: "Report status updated." });
+    } catch (err) {
+        console.error("Admin Report Status Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to update report." });
+    }
+});
+
+app.delete("/admin/reports/:id", verifyAdminToken, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        await db.query(`DELETE FROM reports WHERE report_id = $1`, [id]);
+        return res.json({ success: true, message: "Report deleted." });
+    } catch (err) {
+        console.error("Admin Delete Report Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to delete report." });
     }
 });
 

@@ -55,6 +55,7 @@ async function loadUserProfile() {
                                 <i class="fa-solid fa-message"></i> Send Message
                             </button>
                             <button class="btn btn-outline" id="requestBtn">Request Skill Exchange</button>
+                            <button class="btn btn-outline" id="reportBtn">Report User</button>
                         </div>
                     </div>
                 </div>
@@ -115,6 +116,7 @@ async function loadUserProfile() {
         `;
 
         setupTabs();
+        attachReportHandlers();
 
         // FIX 1: listeners attached AFTER HTML is rendered, inside loadUserProfile
         document.getElementById('sendMessageBtn').addEventListener('click', () => {
@@ -238,6 +240,10 @@ async function loadUserProfile() {
             openRequestModal();
         });
 
+        document.getElementById('reportBtn').addEventListener('click', () => {
+            openReportModal(user.id);
+        });
+
     } catch (error) {
         console.error("Failed to load profile:", error);
         container.innerHTML = `<div class="card" style="padding:40px;color:red;text-align:center;">Failed to load profile</div>`;
@@ -274,6 +280,114 @@ function setupTabs() {
             btn.classList.add('active');
             document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
         });
+    });
+}
+
+function openReportModal(reportedUserId) {
+    const modal = document.getElementById('reportModal');
+    const reasonSelect = document.getElementById('reportReason');
+    const descriptionGroup = document.getElementById('reportDescriptionGroup');
+    const descriptionInput = document.getElementById('reportDescription');
+    const messageBox = document.getElementById('reportMessage');
+    const submitBtn = document.getElementById('submitReportBtn');
+
+    if (!modal || !reasonSelect || !descriptionGroup || !descriptionInput || !messageBox || !submitBtn) {
+        return;
+    }
+
+    window._reportTargetId = reportedUserId;
+    reasonSelect.value = '';
+    descriptionInput.value = '';
+    descriptionGroup.classList.add('hidden');
+    messageBox.className = 'form-message hidden';
+    messageBox.textContent = '';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Report';
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeReportModal() {
+    const modal = document.getElementById('reportModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+}
+
+function attachReportHandlers() {
+    const modal = document.getElementById('reportModal');
+    const reasonSelect = document.getElementById('reportReason');
+    const descriptionGroup = document.getElementById('reportDescriptionGroup');
+    const descriptionInput = document.getElementById('reportDescription');
+    const messageBox = document.getElementById('reportMessage');
+    const submitBtn = document.getElementById('submitReportBtn');
+    const cancelBtn = document.getElementById('cancelReportBtn');
+    const closeBtn = document.getElementById('closeReportModal');
+
+    if (!modal || !reasonSelect || !descriptionGroup || !descriptionInput || !messageBox || !submitBtn || !cancelBtn || !closeBtn) {
+        return;
+    }
+
+    reasonSelect.addEventListener('change', () => {
+        descriptionGroup.classList.toggle('hidden', reasonSelect.value !== 'Other');
+    });
+
+    cancelBtn.addEventListener('click', closeReportModal);
+    closeBtn.addEventListener('click', closeReportModal);
+
+    modal.addEventListener('click', (event) => {
+        if (event.target.id === 'reportModal') {
+            closeReportModal();
+        }
+    });
+
+    submitBtn.addEventListener('click', async () => {
+        const reason = reasonSelect.value.trim();
+        const description = descriptionInput.value.trim();
+        const reportedUserId = window._reportTargetId;
+
+        messageBox.className = 'form-message hidden';
+        messageBox.textContent = '';
+
+        if (!reason) {
+            messageBox.textContent = 'Please select a reason.';
+            messageBox.className = 'form-message error';
+            return;
+        }
+
+        if (reason === 'Other' && !description) {
+            messageBox.textContent = 'Please describe the issue.';
+            messageBox.className = 'form-message error';
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        try {
+            const result = await window.api.request('/reports', {
+                method: 'POST',
+                body: JSON.stringify({
+                    reported_user_id: reportedUserId,
+                    reason,
+                    description
+                })
+            });
+
+            if (result.success) {
+                closeReportModal();
+                alert(result.message || 'Report submitted successfully.');
+            } else {
+                messageBox.textContent = result.message || 'Failed to submit report.';
+                messageBox.className = 'form-message error';
+            }
+        } catch (err) {
+            messageBox.textContent = 'Cannot connect to server.';
+            messageBox.className = 'form-message error';
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Report';
+        }
     });
 }
 

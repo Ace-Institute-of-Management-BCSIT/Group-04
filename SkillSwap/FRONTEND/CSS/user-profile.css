@@ -196,3 +196,108 @@
     color: var(--muted);
     font-size: 1.1rem;
 }
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 8, 20, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1200;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    width: min(100%, 480px);
+    border-radius: 20px;
+    padding: 28px;
+    position: relative;
+    box-shadow: var(--shadow);
+}
+
+.modal-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.modal-content h3 {
+    margin: 0 0 8px;
+    color: var(--foreground);
+}
+
+.modal-subtext {
+    margin: 0 0 20px;
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--foreground);
+    font-weight: 600;
+}
+
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--foreground);
+    box-sizing: border-box;
+}
+
+.form-group textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.form-group.hidden,
+.form-message.hidden {
+    display: none;
+}
+
+.form-message {
+    margin: 10px 0 16px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+}
+
+.form-message.success {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+}
+
+.form-message.error {
+    background: rgba(231, 76, 60, 0.15);
+    color: #ff6b6b;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.modal-actions .btn {
+    min-width: 120px;
+}
