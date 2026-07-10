@@ -1,54 +1,53 @@
 // backend/services/emailService.js
-// Uses Brevo's HTTP API (port 443) instead of SMTP (ports 25/465/587),
+// Uses SendGrid's HTTP API (port 443) instead of SMTP (ports 25/465/587),
 // which Render blocks on the free tier. No nodemailer needed.
 
-const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+const SENDGRID_API_URL = "https://api.sendgrid.com/v3/mail/send";
 
 async function sendEmail({ to, subject, html }) {
     if (!to || !subject || !html) {
         throw new Error("sendEmail requires to, subject, and html");
     }
 
-    if (!process.env.BREVO_API_KEY) {
-        throw new Error("Missing BREVO_API_KEY. Add it to your environment variables.");
+    if (!process.env.SENDGRID_API_KEY) {
+        throw new Error("Missing SENDGRID_API_KEY. Add it to your environment variables.");
     }
 
     if (!process.env.EMAIL_USER) {
-        throw new Error("Missing EMAIL_USER. This must be the sender address you verified in Brevo.");
+        throw new Error("Missing EMAIL_USER. This must be the sender address you verified in SendGrid.");
     }
 
     try {
-        console.log("Sending email via Brevo to:", to);
+        console.log("Sending email via SendGrid to:", to);
 
-        const response = await fetch(BREVO_API_URL, {
+        const response = await fetch(SENDGRID_API_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Accept": "application/json",
-                "api-key": process.env.BREVO_API_KEY
+                "Authorization": `Bearer ${process.env.SENDGRID_API_KEY}`
             },
             body: JSON.stringify({
-                sender: { name: "SkillSwap", email: process.env.EMAIL_USER },
-                to: [{ email: to }],
+                personalizations: [{ to: [{ email: to }] }],
+                from: { email: process.env.EMAIL_USER, name: "SkillSwap" },
                 subject,
-                htmlContent: html
+                content: [{ type: "text/html", value: html }]
             })
         });
 
-        const result = await response.json().catch(() => ({}));
-
         if (!response.ok) {
-            console.error("========== BREVO API ERROR ==========");
+            const result = await response.json().catch(() => ({}));
+
+            console.error("========== SENDGRID API ERROR ==========");
             console.error("Status:", response.status);
             console.error("Body:", result);
             console.error("======================================");
-            throw new Error(result.message || `Brevo API request failed with status ${response.status}`);
+            throw new Error(result.errors?.[0]?.message || result.message || `SendGrid API request failed with status ${response.status}`);
         }
 
         console.log(`Email sent to ${to} with subject: ${subject}`);
-        return result;
+        return;
     } catch (error) {
-        console.error("Failed to send email via Brevo:", error.message);
+        console.error("Failed to send email via SendGrid:", error.message);
         throw error;
     }
 }
