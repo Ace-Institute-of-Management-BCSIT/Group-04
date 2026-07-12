@@ -36,6 +36,7 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
+const PLATFORM_COMMISSION_RATE = 0.10;
 
 if (!JWT_SECRET) {
     console.error("❌ Missing JWT_SECRET in .env — refusing to start.");
@@ -970,6 +971,68 @@ app.put("/admin/skills/:id/status", verifyAdminToken, async (req, res) => {
     } catch (err) {
         console.error("Admin Skill Status Error:", err);
         return res.status(500).json({ success: false, message: "Failed to update skill" });
+    }
+});
+
+app.get("/admin/provider-earnings", verifyAdminToken, async (req, res) => {
+    const sql = `
+        SELECT b.booking_id, b.booking_date, b.started_at, b.completed_at,
+               s.provider_id, s.price_per_session, s.skill_name,
+               u.full_name AS provider_name
+        FROM bookings b
+        JOIN skills s ON b.skill_id = s.skill_id
+        JOIN users u ON s.provider_id = u.user_id
+        WHERE (b.status = 'Completed' OR b.session_status = 'Completed')
+          AND b.started_at IS NOT NULL
+          AND b.completed_at IS NOT NULL
+        ORDER BY b.completed_at DESC, b.booking_id DESC
+    `;
+
+    try {
+        const { rows } = await db.query(sql);
+
+        const earnings = rows.map((booking) => {
+            const startTime = new Date(booking.started_at);
+            const endTime = new Date(booking.completed_at);
+            const durationMinutes = Math.max(0, Math.round((endTime - startTime) / 60000));
+            const pricePerMinute = (Number(booking.price_per_session) || 0) / 60;
+            const sessionPrice = Math.round(durationMinutes * pricePerMinute * 100) / 100;
+            const platformCommission = Math.round(sessionPrice * PLATFORM_COMMISSION_RATE * 100) / 100;
+            const providerEarnings = Math.round((sessionPrice - platformCommission) * 100) / 100;
+
+            return {
+                booking_id: booking.booking_id,
+                provider_id: booking.provider_id,
+                provider_name: booking.provider_name,
+                skill_name: booking.skill_name,
+                booking_date: booking.booking_date,
+                started_at: booking.started_at,
+                completed_at: booking.completed_at,
+                duration_minutes: durationMinutes,
+                session_price: sessionPrice,
+                platform_commission: platformCommission,
+                provider_earnings: providerEarnings
+            };
+        });
+
+        const summary = earnings.reduce((acc, item) => ({
+            totalProviderEarnings: Math.round((acc.totalProviderEarnings + item.provider_earnings) * 100) / 100,
+            totalCommission: Math.round((acc.totalCommission + item.platform_commission) * 100) / 100,
+            completedSessions: acc.completedSessions + 1
+        }), {
+            totalProviderEarnings: 0,
+            totalCommission: 0,
+            completedSessions: 0
+        });
+
+        return res.json({
+            success: true,
+            summary,
+            earnings
+        });
+    } catch (err) {
+        console.error("Admin Provider Earnings Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to load provider earnings" });
     }
 });
 

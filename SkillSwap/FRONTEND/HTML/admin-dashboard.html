@@ -67,6 +67,49 @@
                         <div class="stat-label">Messages Sent</div>
                     </div>
                 </div>
+
+                <div class="provider-earnings-section card">
+                    <div class="table-card-header">
+                        <div>
+                            <h3>Provider Earnings</h3>
+                            <p class="subtext">Track completed session payments and platform commissions.</p>
+                        </div>
+                    </div>
+
+                    <div class="earnings-summary">
+                        <div class="earnings-summary-card">
+                            <div class="summary-label">Total Provider Earnings</div>
+                            <div class="summary-value" id="earningsTotalProvider">—</div>
+                        </div>
+                        <div class="earnings-summary-card">
+                            <div class="summary-label">Total Platform Commission</div>
+                            <div class="summary-value" id="earningsTotalCommission">—</div>
+                        </div>
+                        <div class="earnings-summary-card">
+                            <div class="summary-label">Total Completed Sessions</div>
+                            <div class="summary-value" id="earningsCompletedSessions">—</div>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Provider</th>
+                                    <th>Skill</th>
+                                    <th>Session Date</th>
+                                    <th>Session Duration</th>
+                                    <th>Session Price</th>
+                                    <th>Platform Commission</th>
+                                    <th>Provider Earned</th>
+                                </tr>
+                            </thead>
+                            <tbody id="providerEarningsTableBody">
+                                <tr><td colspan="7" class="loading-row">Loading provider earnings…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <!-- ===== USERS SECTION ===== -->

@@ -38,6 +38,7 @@ function showSection(name) {
     document.getElementById(`${name}-section`)?.classList.add("active");
     document.querySelector(`.nav-link[data-section="${name}"]`)?.classList.add("active");
 
+    if (name === "overview") loadProviderEarnings();
     if (name === "users") loadUsers();
     if (name === "skills") loadSkills();
     if (name === "messages") loadMessages();
@@ -83,6 +84,58 @@ async function loadStats() {
         document.getElementById("statMessages").textContent = data.stats.totalMessages;
     } catch (err) {
         console.error("Failed to load stats:", err);
+    }
+}
+
+function formatCurrency(value) {
+    const amount = Number(value || 0);
+    return `Rs. ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatDateTime(value) {
+    if (!value) return "—";
+    return new Date(value).toLocaleDateString();
+}
+
+async function loadProviderEarnings() {
+    const tbody = document.getElementById("providerEarningsTableBody");
+    tbody.innerHTML = `<tr><td colspan="7" class="loading-row">Loading provider earnings…</td></tr>`;
+
+    document.getElementById("earningsTotalProvider").textContent = "—";
+    document.getElementById("earningsTotalCommission").textContent = "—";
+    document.getElementById("earningsCompletedSessions").textContent = "—";
+
+    try {
+        const data = await adminFetch("/admin/provider-earnings");
+        if (!data || !data.success) {
+            tbody.innerHTML = `<tr><td colspan="7" class="loading-row">Could not load provider earnings.</td></tr>`;
+            return;
+        }
+
+        const summary = data.summary || {};
+        document.getElementById("earningsTotalProvider").textContent = formatCurrency(summary.totalProviderEarnings || 0);
+        document.getElementById("earningsTotalCommission").textContent = formatCurrency(summary.totalCommission || 0);
+        document.getElementById("earningsCompletedSessions").textContent = summary.completedSessions || 0;
+
+        if (!data.earnings || data.earnings.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="loading-row">No completed sessions available.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.earnings.map(earning => `
+            <tr>
+                <td data-label="Provider">${escapeHtml(earning.provider_name || "—")}</td>
+                <td data-label="Skill">${escapeHtml(earning.skill_name || "—")}</td>
+                <td data-label="Session Date">${formatDateTime(earning.booking_date)}</td>
+                <td data-label="Session Duration">${Number(earning.duration_minutes || 0)} min</td>
+                <td data-label="Session Price">${formatCurrency(earning.session_price)}</td>
+                <td data-label="Platform Commission">${formatCurrency(earning.platform_commission)}</td>
+                <td data-label="Provider Earned">${formatCurrency(earning.provider_earnings)}</td>
+            </tr>
+        `).join("");
+    } catch (err) {
+        console.error("Failed to load provider earnings:", err);
+        tbody.innerHTML = `<tr><td colspan="7" class="loading-row">Could not connect to server.</td></tr>`;
     }
 }
 
@@ -414,3 +467,4 @@ function escapeHtml(str) {
 // ===== Init =====
 loadAdminIdentity();
 loadStats();
+loadProviderEarnings();

@@ -287,6 +287,40 @@ body::before {
     gap: 20px;
 }
 
+.provider-earnings-section {
+    margin-top: 24px;
+    overflow: hidden;
+}
+
+.earnings-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 24px 24px 0;
+}
+
+.earnings-summary-card {
+    background: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+}
+
+.summary-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+
+.summary-value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text);
+}
+
 .stat-card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -439,6 +473,10 @@ tbody tr:hover {
         padding: 0 18px;
     }
 
+    .earnings-summary {
+        grid-template-columns: 1fr;
+    }
+
     .nav-link {
         padding: 9px 12px;
     }
@@ -518,6 +556,10 @@ tbody tr:hover {
 
     .stats-grid {
         grid-template-columns: 1fr;
+    }
+
+    .earnings-summary {
+        padding: 20px 20px 0;
     }
 
     thead {
