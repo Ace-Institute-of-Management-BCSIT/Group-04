@@ -126,63 +126,46 @@ async function loadUserProfile() {
         document.getElementById('requestBtn').addEventListener('click', () => {
             if (!document.getElementById('requestModal')) {
                 document.body.insertAdjacentHTML('beforeend', `
-                <div id="requestModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-                     background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; padding:15px;">
-                    <div style="background:var(--card-bg, #1a1f2e); width:100%; max-width:460px; border-radius:16px;
-                                padding:30px; box-shadow:0 8px 32px rgba(0,0,0,0.4); position:relative;">
+                <div id="requestModal" class="request-modal" style="display:none;">
+                    <div class="request-modal-card">
 
-                        <button id="closeRequestModal" style="position:absolute; top:14px; right:16px;
-                                background:none; border:none; font-size:1.4rem; cursor:pointer; color:#7f8c8d;">x</button>
+                        <button id="closeRequestModal" class="request-modal-close" type="button" aria-label="Close request dialog">×</button>
 
-                        <h3 style="margin:0 0 6px 0; font-size:1.3rem; color:var(--text, #fff);">Request Skill Exchange</h3>
-                        <p style="margin:0 0 22px 0; color:#7f8c8d; font-size:0.88rem;">
+                        <h3>Request Skill Exchange</h3>
+                        <p class="request-modal-subtext">
                             Pick a skill, date, and time. The provider will accept or reject your request.
                         </p>
 
-                        <div style="margin-bottom:15px;">
-                            <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color:var(--text,#fff);">
-                                Skill <span style="color:#e74c3c;">*</span>
+                        <div class="request-form-group">
+                            <label for="requestSkillSelect">
+                                Skill <span class="required-mark">*</span>
                             </label>
-                            <select id="requestSkillSelect"
-                                style="width:100%; padding:10px 12px; border:1px solid #2ecc71; border-radius:8px;
-                                       font-size:0.95rem; background:var(--input-bg,#12172a); color:var(--text,#fff);
-                                       outline:none; cursor:pointer; box-sizing:border-box;">
+                            <select id="requestSkillSelect" class="request-form-control request-select">
                                 <option value="">Select a skill</option>
                             </select>
                         </div>
 
-                        <div style="margin-bottom:15px;">
-                            <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color:var(--text,#fff);">
-                                Date <span style="color:#e74c3c;">*</span>
+                        <div class="request-form-group">
+                            <label for="requestDate">
+                                Date <span class="required-mark">*</span>
                             </label>
-                            <input type="date" id="requestDate"
-                                style="width:100%; padding:10px 12px; border:1px solid #444; border-radius:8px;
-                                       font-size:0.95rem; background:var(--input-bg,#12172a); color:var(--text,#fff);
-                                       outline:none; box-sizing:border-box;">
+                            <input type="date" id="requestDate" class="request-form-control request-date-input">
                         </div>
 
-                        <div style="margin-bottom:22px;">
-                            <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color:var(--text,#fff);">
-                                Time <span style="color:#e74c3c;">*</span>
+                        <div class="request-form-group request-form-group-last">
+                            <label for="requestTime">
+                                Time <span class="required-mark">*</span>
                             </label>
-                            <input type="time" id="requestTime"
-                                style="width:100%; padding:10px 12px; border:1px solid #444; border-radius:8px;
-                                       font-size:0.95rem; background:var(--input-bg,#12172a); color:var(--text,#fff);
-                                       outline:none; box-sizing:border-box;">
+                            <input type="time" id="requestTime" class="request-form-control request-time-input">
                         </div>
 
-                        <div id="requestError" style="display:none; color:#e74c3c; font-size:0.85rem;
-                             margin-bottom:12px; padding:8px 12px; background:rgba(231,76,60,0.1); border-radius:6px;"></div>
+                        <div id="requestError" class="request-error"></div>
 
-                        <div style="display:flex; gap:10px; justify-content:flex-end;">
-                            <button id="cancelRequestBtn"
-                                style="background:#2a2f3e; color:#aaa; border:none; padding:10px 20px;
-                                       border-radius:8px; cursor:pointer; font-weight:600; font-size:0.9rem;">
+                        <div class="request-modal-actions">
+                            <button id="cancelRequestBtn" class="request-cancel-btn" type="button">
                                 Cancel
                             </button>
-                            <button id="submitRequestBtn"
-                                style="background:#2ecc71; color:white; border:none; padding:10px 22px;
-                                       border-radius:8px; cursor:pointer; font-weight:600; font-size:0.9rem;">
+                            <button id="submitRequestBtn" class="request-submit-btn" type="button">
                                 Send Request
                             </button>
                         </div>
