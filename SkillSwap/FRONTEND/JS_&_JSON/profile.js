@@ -139,7 +139,7 @@ async function triggerSessionAction(bookingId, action, token = null) {
                 // Show session completion details with price calculation
                 const booking = result.booking;
                 if (booking.duration_minutes !== undefined && booking.total_price !== undefined) {
-                    alert(`Session completed!\n\n⏱️ Duration: ${booking.duration_minutes} minutes\n💰 Total: Rs. ${booking.total_price}`);
+                    alert(`Session completed!\n\n Duration: ${booking.duration_minutes} minutes\n Total: Rs. ${booking.total_price}`);
                 } else {
                     alert('Session completed successfully.');
                 }
@@ -503,10 +503,10 @@ function bindAddSkillButton() {
                     <select id="skillLevelInput"
                         style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; background:var(--background); color: var(--foreground); outline:none; cursor:pointer;"
                         onfocus="this.style.borderColor='#2ecc71'" onblur="this.style.borderColor='var(--border)'">
-                        <option value="Beginner">🌱 Beginner</option>
-                        <option value="Intermediate" selected>⚡ Intermediate</option>
-                        <option value="Advanced">🔥 Advanced</option>
-                        <option value="Expert">🏆 Expert</option>
+                        <option value="Beginner"> Beginner</option>
+                        <option value="Intermediate" selected> Intermediate</option>
+                        <option value="Advanced"> Advanced</option>
+                        <option value="Expert"> Expert</option>
                     </select>
                 </div>
                 <div style="margin-bottom:15px;">
@@ -736,10 +736,10 @@ function openEditSkillModal(skillId) {
                     <select id="editSkillLevelInput"
                         style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; background:var(--background); color: var(--foreground); outline:none; cursor:pointer;"
                         onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
-                        <option value="Beginner">🌱 Beginner</option>
-                        <option value="Intermediate">⚡ Intermediate</option>
-                        <option value="Advanced">🔥 Advanced</option>
-                        <option value="Expert">🏆 Expert</option>
+                        <option value="Beginner"> Beginner</option>
+                        <option value="Intermediate"> Intermediate</option>
+                        <option value="Advanced"> Advanced</option>
+                        <option value="Expert"> Expert</option>
                     </select>
                 </div>
                 <div style="margin-bottom:15px;">
