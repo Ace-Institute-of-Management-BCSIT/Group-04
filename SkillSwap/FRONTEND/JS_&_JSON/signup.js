@@ -57,8 +57,9 @@ if (form) {
       valid = false;
     }
 
-    if (password.value.length < 6) {
-      showError(password, "Password must be at least 6 characters");
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+    if (!passwordPattern.test(password.value)) {
+      showError(password, "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol");
       valid = false;
     }
 
