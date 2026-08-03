@@ -336,15 +336,8 @@ async function loadVerifications() {
             if (skill.evidence_url) {
                 evidenceParts.push(`<a href="${escapeHtml(skill.evidence_url)}" target="_blank" rel="noopener noreferrer">View link</a>`);
             }
-            if (skill.evidence_file) {
-                const fileName = escapeHtml(skill.evidence_file_name || "evidence-file");
-                const lowerName = String(skill.evidence_file_name || "").toLowerCase();
-                const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(lowerName);
-                if (isImage) {
-                    evidenceParts.push(`<a href="${escapeHtml(skill.evidence_file)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(skill.evidence_file)}" alt="${fileName}" style="max-width:60px; max-height:60px; border-radius:6px; cursor:pointer; object-fit:cover;"></a>`);
-                } else {
-                    evidenceParts.push(`<a href="${escapeHtml(skill.evidence_file)}" target="_blank" rel="noopener noreferrer">📄 ${fileName}</a>`);
-                }
+            if (skill.evidence_file_name) {
+                evidenceParts.push(`<button class="btn-sm secondary" data-view-skill-evidence="${skill.skill_id}" style="margin-top:4px;">View File</button>`);
             }
             const evidenceDisplay = evidenceParts.length ? evidenceParts.join("<br>") : "—";
             return `
@@ -369,9 +362,26 @@ async function loadVerifications() {
         tbody.querySelectorAll("[data-reject-skill]").forEach(btn => {
             btn.addEventListener("click", () => rejectSkillVerification(btn.dataset.rejectSkill));
         });
+
+        tbody.querySelectorAll("[data-view-skill-evidence]").forEach(btn => {
+            btn.addEventListener("click", () => viewSkillEvidence(btn.dataset.viewSkillEvidence));
+        });
     } catch (err) {
         console.error("Failed to load verifications:", err);
         tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Could not connect to server.</td></tr>`;
+    }
+}
+
+async function viewSkillEvidence(skillId) {
+    try {
+        const data = await adminFetch(`/admin/skills/${skillId}/evidence-file`);
+        if (!data || !data.success || !data.evidence_file) {
+            alert("No evidence file is available for this skill.");
+            return;
+        }
+        window.open(data.evidence_file, "_blank", "noopener,noreferrer");
+    } catch (err) {
+        alert("Network error while loading evidence file.");
     }
 }
 

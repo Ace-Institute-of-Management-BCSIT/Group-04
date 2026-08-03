@@ -389,7 +389,14 @@ app.post("/api/users/skills", verifyToken, async (req, res) => {
 
 app.get("/api/users/skills", verifyToken, async (req, res) => {
     const userId = req.userId;
-    const sql = `SELECT * FROM skills WHERE provider_id = $1 ORDER BY created_at DESC`;
+    const sql = `
+        SELECT skill_id, provider_id, skill_name, category, description, skill_level,
+               price_per_session, availability, status, created_at, verification_status,
+               evidence_url, evidence_notes, admin_feedback, evidence_file_name
+        FROM skills
+        WHERE provider_id = $1
+        ORDER BY created_at DESC
+    `;
     try {
         const { rows: results } = await db.query(sql, [userId]);
         return res.json({ success: true, skills: results });
@@ -1001,7 +1008,7 @@ app.delete("/admin/skills/:id", verifyAdminToken, async (req, res) => {
 app.get("/admin/skills/verifications", verifyAdminToken, async (req, res) => {
     const sql = `
         SELECT s.skill_id, s.skill_name, s.category, s.description, s.evidence_url, s.evidence_notes,
-               s.evidence_file, s.evidence_file_name, s.verification_status, s.admin_feedback, s.created_at,
+               s.evidence_file_name, s.verification_status, s.admin_feedback, s.created_at,
                u.full_name AS provider_name, u.email AS provider_email
         FROM skills s
         JOIN users u ON s.provider_id = u.user_id
@@ -1021,6 +1028,31 @@ app.get("/admin/skills/verifications", verifyAdminToken, async (req, res) => {
     } catch (err) {
         console.error("Admin Skill Verifications Error:", err);
         return res.status(500).json({ success: false, message: "Failed to load skill verifications" });
+    }
+});
+
+app.get("/admin/skills/:id/evidence-file", verifyAdminToken, async (req, res) => {
+    const { id } = req.params;
+    const sql = `
+        SELECT evidence_file, evidence_file_name
+        FROM skills
+        WHERE skill_id = $1
+    `;
+
+    try {
+        const { rows } = await db.query(sql, [id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Skill not found." });
+        }
+
+        return res.json({
+            success: true,
+            evidence_file: rows[0].evidence_file || null,
+            evidence_file_name: rows[0].evidence_file_name || null
+        });
+    } catch (err) {
+        console.error("Admin Skill Evidence Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to load skill evidence file" });
     }
 });
 
