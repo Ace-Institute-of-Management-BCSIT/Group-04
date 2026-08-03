@@ -13,6 +13,7 @@ const { sendEmail } = require("./services/emailService");
 const { verifyToken, verifyAdminToken } = require("./middleware/auth");
 
 const app = express();
+app.disable('etag');
 const server = http.createServer(app);
 
 const io = new Server(server, {
