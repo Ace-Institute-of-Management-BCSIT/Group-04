@@ -736,6 +736,7 @@ async function loadMySkills() {
 
     try {
         const data = await window.api.request('/users/skills');
+        console.log('Skills API response:', data);
         if (data.success && data.skills && data.skills.length > 0) {
             allMySkills = data.skills;
             skillsList.innerHTML = data.skills.map(skill => {
@@ -768,6 +769,7 @@ async function loadMySkills() {
             skillsList.innerHTML = '<p style="color:var(--muted-foreground);">No skills added yet.</p>';
         }
     } catch (e) {
+        console.error('loadMySkills failed:', e);
         skillsList.innerHTML = '<p style="color:#e74c3c;">Failed to load skills.</p>';
     }
 }
