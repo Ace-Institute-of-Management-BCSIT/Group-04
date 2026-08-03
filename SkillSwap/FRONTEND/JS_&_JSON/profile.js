@@ -1,5 +1,14 @@
 // FRONTEND/JS_&_JSON/profile.js
 
+function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
 async function loadMyProfile() {
     const container = document.getElementById("profileContainer");
     if (!container) return;
