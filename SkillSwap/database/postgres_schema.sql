@@ -36,6 +36,8 @@ CREATE TABLE skills (
     evidence_url TEXT,
     evidence_notes TEXT,
     admin_feedback TEXT,
+    evidence_file TEXT,
+    evidence_file_name VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_provider ON skills(provider_id);

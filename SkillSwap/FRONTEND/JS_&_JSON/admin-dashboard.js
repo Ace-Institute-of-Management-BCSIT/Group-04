@@ -332,14 +332,26 @@ async function loadVerifications() {
         tbody.innerHTML = data.skills.map(skill => {
             const status = skill.verification_status || "Pending";
             const statusColor = status === "Approved" ? "#2ecc71" : (status === "Rejected" ? "#e74c3c" : "#f39c12");
-            const evidenceLink = skill.evidence_url
-                ? `<a href="${escapeHtml(skill.evidence_url)}" target="_blank" rel="noopener noreferrer">View link</a>`
-                : "—";
+            const evidenceParts = [];
+            if (skill.evidence_url) {
+                evidenceParts.push(`<a href="${escapeHtml(skill.evidence_url)}" target="_blank" rel="noopener noreferrer">View link</a>`);
+            }
+            if (skill.evidence_file) {
+                const fileName = escapeHtml(skill.evidence_file_name || "evidence-file");
+                const lowerName = String(skill.evidence_file_name || "").toLowerCase();
+                const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(lowerName);
+                if (isImage) {
+                    evidenceParts.push(`<a href="${escapeHtml(skill.evidence_file)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(skill.evidence_file)}" alt="${fileName}" style="max-width:60px; max-height:60px; border-radius:6px; cursor:pointer; object-fit:cover;"></a>`);
+                } else {
+                    evidenceParts.push(`<a href="${escapeHtml(skill.evidence_file)}" target="_blank" rel="noopener noreferrer">📄 ${fileName}</a>`);
+                }
+            }
+            const evidenceDisplay = evidenceParts.length ? evidenceParts.join("<br>") : "—";
             return `
                 <tr>
                     <td data-label="Skill">${escapeHtml(skill.skill_name || "—")}</td>
                     <td data-label="Provider">${escapeHtml(skill.provider_name || "—")}</td>
-                    <td data-label="Evidence">${evidenceLink}</td>
+                    <td data-label="Evidence">${evidenceDisplay}</td>
                     <td data-label="Notes">${escapeHtml(skill.evidence_notes || "—")}</td>
                     <td data-label="Status"><span style="background:${statusColor}22; color:${statusColor}; padding:4px 10px; border-radius:20px; font-size:0.82rem; font-weight:600;">${escapeHtml(status)}</span></td>
                     <td data-label="Action">

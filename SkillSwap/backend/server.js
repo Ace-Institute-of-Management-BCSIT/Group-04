@@ -87,7 +87,9 @@ async function ensureSkillVerificationColumns() {
         `ALTER TABLE skills ADD COLUMN IF NOT EXISTS verification_status VARCHAR(20) DEFAULT 'Pending' CHECK (verification_status IN ('Pending', 'Approved', 'Rejected'))`,
         `ALTER TABLE skills ADD COLUMN IF NOT EXISTS evidence_url TEXT`,
         `ALTER TABLE skills ADD COLUMN IF NOT EXISTS evidence_notes TEXT`,
-        `ALTER TABLE skills ADD COLUMN IF NOT EXISTS admin_feedback TEXT`
+        `ALTER TABLE skills ADD COLUMN IF NOT EXISTS admin_feedback TEXT`,
+        `ALTER TABLE skills ADD COLUMN IF NOT EXISTS evidence_file TEXT`,
+        `ALTER TABLE skills ADD COLUMN IF NOT EXISTS evidence_file_name VARCHAR(255)`
     ];
 
     try {
@@ -343,19 +345,25 @@ function normalizeSkillCategory(category) {
 
 app.post("/api/users/skills", verifyToken, async (req, res) => {
     const userId = req.userId;
-    const { skill_name, skill_level, category, description, price_per_session, availability, evidence_url, evidence_notes } = req.body;
+    const { skill_name, skill_level, category, description, price_per_session, availability, evidence_url, evidence_notes, evidence_file, evidence_file_name } = req.body;
     const finalCategory = normalizeSkillCategory(category);
     const normalizedEvidenceUrl = typeof evidence_url === 'string' ? evidence_url.trim() : '';
+    const normalizedEvidenceFile = typeof evidence_file === 'string' ? evidence_file.trim() : '';
+    const normalizedEvidenceFileName = typeof evidence_file_name === 'string' ? evidence_file_name.trim() : null;
 
-    if (!normalizedEvidenceUrl) {
-        return res.status(400).json({ success: false, message: "Proof of skill is required." });
+    if (!normalizedEvidenceUrl && !normalizedEvidenceFile) {
+        return res.status(400).json({ success: false, message: "Please provide either a link or an uploaded file as proof of this skill." });
+    }
+
+    if (normalizedEvidenceFile && normalizedEvidenceFile.length > 7000000) {
+        return res.status(400).json({ success: false, message: "The uploaded evidence file is too large. Please choose a file smaller than about 5MB." });
     }
 
     const sql = `
         INSERT INTO skills 
         (provider_id, skill_name, category, description, skill_level, 
-         price_per_session, availability, evidence_url, evidence_notes, verification_status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Pending')
+         price_per_session, availability, evidence_url, evidence_notes, evidence_file, evidence_file_name, verification_status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'Pending')
     `;
 
     try {
@@ -367,8 +375,10 @@ app.post("/api/users/skills", verifyToken, async (req, res) => {
             skill_level || 'Intermediate',
             price_per_session || 0,
             availability || 'Flexible',
-            normalizedEvidenceUrl,
-            typeof evidence_notes === 'string' ? evidence_notes.trim() : null
+            normalizedEvidenceUrl || null,
+            typeof evidence_notes === 'string' ? evidence_notes.trim() : null,
+            normalizedEvidenceFile || null,
+            normalizedEvidenceFileName
         ]);
         return res.json({ success: true, message: "Skill added successfully!" });
     } catch (err) {
@@ -392,21 +402,27 @@ app.get("/api/users/skills", verifyToken, async (req, res) => {
 app.put("/api/users/skills/:id", verifyToken, async (req, res) => {
     const userId = req.userId;
     const skillId = req.params.id;
-    const { skill_name, skill_level, category, description, price_per_session, availability, evidence_url, evidence_notes } = req.body;
+    const { skill_name, skill_level, category, description, price_per_session, availability, evidence_url, evidence_notes, evidence_file, evidence_file_name } = req.body;
     const finalCategory = normalizeSkillCategory(category);
     const normalizedEvidenceUrl = typeof evidence_url === 'string' ? evidence_url.trim() : '';
+    const normalizedEvidenceFile = typeof evidence_file === 'string' ? evidence_file.trim() : '';
+    const normalizedEvidenceFileName = typeof evidence_file_name === 'string' ? evidence_file_name.trim() : null;
 
-    if (!normalizedEvidenceUrl) {
-        return res.status(400).json({ success: false, message: "Proof of skill is required." });
+    if (!normalizedEvidenceUrl && !normalizedEvidenceFile) {
+        return res.status(400).json({ success: false, message: "Please provide either a link or an uploaded file as proof of this skill." });
+    }
+
+    if (normalizedEvidenceFile && normalizedEvidenceFile.length > 7000000) {
+        return res.status(400).json({ success: false, message: "The uploaded evidence file is too large. Please choose a file smaller than about 5MB." });
     }
 
     const sql = `
         UPDATE skills 
         SET skill_name = $1, skill_level = $2, category = $3, 
             description = $4, price_per_session = $5, availability = $6,
-            evidence_url = $7, evidence_notes = $8,
+            evidence_url = $7, evidence_notes = $8, evidence_file = $9, evidence_file_name = $10,
             verification_status = 'Pending', admin_feedback = NULL
-        WHERE skill_id = $9 AND provider_id = $10
+        WHERE skill_id = $11 AND provider_id = $12
         RETURNING skill_id
     `;
 
@@ -418,8 +434,10 @@ app.put("/api/users/skills/:id", verifyToken, async (req, res) => {
             description,
             price_per_session || 0,
             availability || 'Flexible',
-            normalizedEvidenceUrl,
+            normalizedEvidenceUrl || null,
             typeof evidence_notes === 'string' ? evidence_notes.trim() : null,
+            normalizedEvidenceFile || null,
+            normalizedEvidenceFileName,
             skillId,
             userId
         ]);
@@ -983,7 +1001,7 @@ app.delete("/admin/skills/:id", verifyAdminToken, async (req, res) => {
 app.get("/admin/skills/verifications", verifyAdminToken, async (req, res) => {
     const sql = `
         SELECT s.skill_id, s.skill_name, s.category, s.description, s.evidence_url, s.evidence_notes,
-               s.verification_status, s.admin_feedback, s.created_at,
+               s.evidence_file, s.evidence_file_name, s.verification_status, s.admin_feedback, s.created_at,
                u.full_name AS provider_name, u.email AS provider_email
         FROM skills s
         JOIN users u ON s.provider_id = u.user_id

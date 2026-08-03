@@ -532,10 +532,17 @@ function bindAddSkillButton() {
                         onfocus="this.style.borderColor='#2ecc71'" onblur="this.style.borderColor='var(--border)'" value="0">
                 </div>
                 <div style="margin-bottom:15px;">
-                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Proof of Skill (link) <span style="color:#e74c3c;">*</span></label>
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Proof of Skill (link) — optional if uploading a file</label>
                     <input type="url" id="skillEvidenceInput" placeholder="Certificate, portfolio, LinkedIn, or other proof"
                         style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
                         onfocus="this.style.borderColor='#2ecc71'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Upload Evidence File</label>
+                    <input type="file" id="skillEvidenceFileInput" accept="image/*,.pdf"
+                        style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; background: var(--background); color: var(--foreground);"
+                        onfocus="this.style.borderColor='#2ecc71'" onblur="this.style.borderColor='var(--border)'">
+                    <p style="margin:6px 0 0 0; color:var(--muted-foreground); font-size:0.8rem;">Max size: about 5MB. You can provide a link and/or a file.</p>
                 </div>
                 <div style="margin-bottom:15px;">
                     <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Notes for Admin</label>
@@ -573,6 +580,7 @@ function bindAddSkillButton() {
         document.getElementById('skillDescInput').value  = '';
         document.getElementById('skillEvidenceInput').value = '';
         document.getElementById('skillEvidenceNotesInput').value = '';
+        document.getElementById('skillEvidenceFileInput').value = '';
         errorBox.style.display = 'none';
         modal.style.display    = 'flex';
         submitBtn.disabled = false;
@@ -594,6 +602,8 @@ function bindAddSkillButton() {
         const desc      = document.getElementById('skillDescInput').value.trim();
         const evidenceUrl = document.getElementById('skillEvidenceInput').value.trim();
         const evidenceNotes = document.getElementById('skillEvidenceNotesInput').value.trim();
+        const evidenceFileInput = document.getElementById('skillEvidenceFileInput');
+        const evidenceFile = evidenceFileInput && evidenceFileInput.files && evidenceFileInput.files[0] ? evidenceFileInput.files[0] : null;
 
         if (!skillName) {
             errorBox.textContent   = 'Please enter a skill name.';
@@ -602,8 +612,8 @@ function bindAddSkillButton() {
             return;
         }
 
-        if (!evidenceUrl) {
-            errorBox.textContent   = 'Please provide proof of this skill.';
+        if (!evidenceUrl && !evidenceFile) {
+            errorBox.textContent   = 'Please provide either a link or an uploaded file as proof of this skill.';
             errorBox.style.display = 'block';
             document.getElementById('skillEvidenceInput').focus();
             return;
@@ -614,6 +624,19 @@ function bindAddSkillButton() {
         errorBox.style.display = 'none';
 
         try {
+            let evidenceFileData = '';
+            let evidenceFileName = '';
+
+            if (evidenceFile) {
+                evidenceFileData = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = (error) => reject(error);
+                    reader.readAsDataURL(evidenceFile);
+                });
+                evidenceFileName = evidenceFile.name;
+            }
+
             const data = await window.api.request('/users/skills', {
                 method: 'POST',
                 body: JSON.stringify({ 
@@ -623,7 +646,9 @@ function bindAddSkillButton() {
                     description: desc, 
                     price_per_session: price,
                     evidence_url: evidenceUrl,
-                    evidence_notes: evidenceNotes
+                    evidence_notes: evidenceNotes,
+                    evidence_file: evidenceFileData,
+                    evidence_file_name: evidenceFileName
                 })
             });
 
@@ -728,6 +753,7 @@ async function loadMySkills() {
                         <span style="margin-left:8px; background:${verificationColor}22; color:${verificationColor}; padding:2px 10px; border-radius:20px; font-size:0.78rem; font-weight:600;">${verificationStatus}</span>
                         <p style="margin:5px 0 0 0; color:var(--muted-foreground); font-size:0.88rem;">${skill.description || ''}</p>
                         <p style="margin:3px 0 0 0; color:var(--muted-foreground); font-size:0.85rem;"><strong>Rs. ${skill.price_per_session || 0}/hr</strong></p>
+                        ${skill.evidence_file_name ? `<p style="margin:6px 0 0 0; color:var(--muted-foreground); font-size:0.8rem;">📎 ${escapeHtml(skill.evidence_file_name)}</p>` : ''}
                         ${feedbackBlock}
                     </div>
                     <div style="display:flex; gap:8px; margin-left:10px;">
@@ -798,10 +824,21 @@ function openEditSkillModal(skillId) {
                         onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
                 </div>
                 <div style="margin-bottom:15px;">
-                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Proof of Skill (link) <span style="color:#e74c3c;">*</span></label>
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Proof of Skill (link) — optional if uploading a file</label>
                     <input type="url" id="editSkillEvidenceInput" placeholder="Certificate, portfolio, LinkedIn, or other proof"
                         style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
                         onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Upload Evidence File</label>
+                    <input type="file" id="editSkillEvidenceFileInput" accept="image/*,.pdf"
+                        style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; background: var(--background); color: var(--foreground);"
+                        onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
+                    <p style="margin:6px 0 0 0; color:var(--muted-foreground); font-size:0.8rem;">Max size: about 5MB. You can provide a link and/or a file.</p>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Current Evidence</label>
+                    <div id="editSkillEvidenceFileNameDisplay" style="font-size:0.85rem; color:var(--muted-foreground);">${skill.evidence_file_name ? `Current file: ${skill.evidence_file_name}` : 'No file uploaded yet.'}</div>
                 </div>
                 <div style="margin-bottom:15px;">
                     <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Notes for Admin</label>
@@ -833,6 +870,8 @@ function openEditSkillModal(skillId) {
     document.getElementById('editSkillDescInput').value = skill.description || '';
     document.getElementById('editSkillEvidenceInput').value = skill.evidence_url || '';
     document.getElementById('editSkillEvidenceNotesInput').value = skill.evidence_notes || '';
+    document.getElementById('editSkillEvidenceFileInput').value = '';
+    document.getElementById('editSkillEvidenceFileNameDisplay').textContent = skill.evidence_file_name ? `Current file: ${skill.evidence_file_name}` : 'No file uploaded yet.';
     document.getElementById('editSkillError').style.display = 'none';
     modal.style.display = 'flex';
 
@@ -854,6 +893,8 @@ function openEditSkillModal(skillId) {
         const desc = document.getElementById('editSkillDescInput').value.trim();
         const evidenceUrl = document.getElementById('editSkillEvidenceInput').value.trim();
         const evidenceNotes = document.getElementById('editSkillEvidenceNotesInput').value.trim();
+        const evidenceFileInput = document.getElementById('editSkillEvidenceFileInput');
+        const evidenceFile = evidenceFileInput && evidenceFileInput.files && evidenceFileInput.files[0] ? evidenceFileInput.files[0] : null;
 
         if (!skillName) {
             errorBox.textContent = 'Please enter a skill name.';
@@ -861,8 +902,8 @@ function openEditSkillModal(skillId) {
             return;
         }
 
-        if (!evidenceUrl) {
-            errorBox.textContent = 'Please provide proof of this skill.';
+        if (!evidenceUrl && !evidenceFile) {
+            errorBox.textContent = 'Please provide either a link or an uploaded file as proof of this skill.';
             errorBox.style.display = 'block';
             document.getElementById('editSkillEvidenceInput').focus();
             return;
@@ -873,6 +914,19 @@ function openEditSkillModal(skillId) {
         errorBox.style.display = 'none';
 
         try {
+            let evidenceFileData = '';
+            let evidenceFileName = '';
+
+            if (evidenceFile) {
+                evidenceFileData = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = (error) => reject(error);
+                    reader.readAsDataURL(evidenceFile);
+                });
+                evidenceFileName = evidenceFile.name;
+            }
+
             const data = await window.api.request(`/users/skills/${skillId}`, {
                 method: 'PUT',
                 body: JSON.stringify({
@@ -883,7 +937,9 @@ function openEditSkillModal(skillId) {
                     price_per_session: price,
                     availability: 'Flexible',
                     evidence_url: evidenceUrl,
-                    evidence_notes: evidenceNotes
+                    evidence_notes: evidenceNotes,
+                    evidence_file: evidenceFileData,
+                    evidence_file_name: evidenceFileName
                 })
             });
 
