@@ -531,6 +531,17 @@ function bindAddSkillButton() {
                         style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
                         onfocus="this.style.borderColor='#2ecc71'" onblur="this.style.borderColor='var(--border)'" value="0">
                 </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Proof of Skill (link) <span style="color:#e74c3c;">*</span></label>
+                    <input type="url" id="skillEvidenceInput" placeholder="Certificate, portfolio, LinkedIn, or other proof"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
+                        onfocus="this.style.borderColor='#2ecc71'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Notes for Admin</label>
+                    <textarea id="skillEvidenceNotesInput" rows="2" placeholder="Optional details for the admin review…"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; resize:vertical; outline:none; background: var(--background); color: var(--foreground);"></textarea>
+                </div>
                 <div style="margin-bottom:22px;">
                     <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Short Description</label>
                     <textarea id="skillDescInput" rows="3" placeholder="Briefly describe your experience with this skill…"
@@ -560,6 +571,8 @@ function bindAddSkillButton() {
         document.getElementById('skillCategoryInput').value = 'Other';
         document.getElementById('skillPriceInput').value = '0';
         document.getElementById('skillDescInput').value  = '';
+        document.getElementById('skillEvidenceInput').value = '';
+        document.getElementById('skillEvidenceNotesInput').value = '';
         errorBox.style.display = 'none';
         modal.style.display    = 'flex';
         submitBtn.disabled = false;
@@ -579,11 +592,20 @@ function bindAddSkillButton() {
         const category  = document.getElementById('skillCategoryInput').value;
         const price     = parseInt(document.getElementById('skillPriceInput').value) || 0;
         const desc      = document.getElementById('skillDescInput').value.trim();
+        const evidenceUrl = document.getElementById('skillEvidenceInput').value.trim();
+        const evidenceNotes = document.getElementById('skillEvidenceNotesInput').value.trim();
 
         if (!skillName) {
             errorBox.textContent   = 'Please enter a skill name.';
             errorBox.style.display = 'block';
             document.getElementById('skillNameInput').focus();
+            return;
+        }
+
+        if (!evidenceUrl) {
+            errorBox.textContent   = 'Please provide proof of this skill.';
+            errorBox.style.display = 'block';
+            document.getElementById('skillEvidenceInput').focus();
             return;
         }
 
@@ -600,7 +622,8 @@ function bindAddSkillButton() {
                     category: category,
                     description: desc, 
                     price_per_session: price,
-                    status: 'active' 
+                    evidence_url: evidenceUrl,
+                    evidence_notes: evidenceNotes
                 })
             });
 
@@ -690,20 +713,30 @@ async function loadMySkills() {
         const data = await window.api.request('/users/skills');
         if (data.success && data.skills && data.skills.length > 0) {
             allMySkills = data.skills;
-            skillsList.innerHTML = data.skills.map(skill => `
+            skillsList.innerHTML = data.skills.map(skill => {
+                const verificationStatus = skill.verification_status || 'Pending';
+                const verificationColor = verificationStatus === 'Approved' ? '#2ecc71' : (verificationStatus === 'Rejected' ? '#e74c3c' : '#f39c12');
+                const feedbackBlock = verificationStatus === 'Rejected' && skill.admin_feedback
+                    ? `<p style="margin:6px 0 0 0; color:#e74c3c; font-size:0.8rem;"><strong>Feedback:</strong> ${skill.admin_feedback}</p>`
+                    : '';
+
+                return `
                 <div style="padding:14px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start;">
                     <div style="flex:1;">
                         <strong style="font-size:1rem; color: var(--foreground);">${skill.skill_name}</strong>
                         <span style="margin-left:10px; background:#e8f8f0; color:#2ecc71; padding:2px 10px; border-radius:20px; font-size:0.78rem; font-weight:600;">${skill.skill_level}</span>
+                        <span style="margin-left:8px; background:${verificationColor}22; color:${verificationColor}; padding:2px 10px; border-radius:20px; font-size:0.78rem; font-weight:600;">${verificationStatus}</span>
                         <p style="margin:5px 0 0 0; color:var(--muted-foreground); font-size:0.88rem;">${skill.description || ''}</p>
                         <p style="margin:3px 0 0 0; color:var(--muted-foreground); font-size:0.85rem;"><strong>Rs. ${skill.price_per_session || 0}/hr</strong></p>
+                        ${feedbackBlock}
                     </div>
                     <div style="display:flex; gap:8px; margin-left:10px;">
                         <button onclick="openEditSkillModal(${skill.skill_id})" style="background:#3498db; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600;">Edit</button>
                         <button onclick="deleteSkill(${skill.skill_id})" style="background:#e74c3c; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600;">Delete</button>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         } else {
             allMySkills = [];
             skillsList.innerHTML = '<p style="color:var(--muted-foreground);">No skills added yet.</p>';
@@ -764,6 +797,17 @@ function openEditSkillModal(skillId) {
                         style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
                         onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
                 </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Proof of Skill (link) <span style="color:#e74c3c;">*</span></label>
+                    <input type="url" id="editSkillEvidenceInput" placeholder="Certificate, portfolio, LinkedIn, or other proof"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; outline:none; background: var(--background); color: var(--foreground);"
+                        onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Notes for Admin</label>
+                    <textarea id="editSkillEvidenceNotesInput" rows="2" placeholder="Optional details for the admin review…"
+                        style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; box-sizing:border-box; resize:vertical; outline:none; background: var(--background); color: var(--foreground);"></textarea>
+                </div>
                 <div style="margin-bottom:22px;">
                     <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem; color: var(--foreground);">Short Description</label>
                     <textarea id="editSkillDescInput" rows="3" placeholder="Briefly describe your experience with this skill…"
@@ -787,6 +831,8 @@ function openEditSkillModal(skillId) {
     document.getElementById('editSkillCategoryInput').value = skill.category || 'Other';
     document.getElementById('editSkillPriceInput').value = skill.price_per_session || 0;
     document.getElementById('editSkillDescInput').value = skill.description || '';
+    document.getElementById('editSkillEvidenceInput').value = skill.evidence_url || '';
+    document.getElementById('editSkillEvidenceNotesInput').value = skill.evidence_notes || '';
     document.getElementById('editSkillError').style.display = 'none';
     modal.style.display = 'flex';
 
@@ -806,10 +852,19 @@ function openEditSkillModal(skillId) {
         const category = document.getElementById('editSkillCategoryInput').value;
         const price = parseInt(document.getElementById('editSkillPriceInput').value) || 0;
         const desc = document.getElementById('editSkillDescInput').value.trim();
+        const evidenceUrl = document.getElementById('editSkillEvidenceInput').value.trim();
+        const evidenceNotes = document.getElementById('editSkillEvidenceNotesInput').value.trim();
 
         if (!skillName) {
             errorBox.textContent = 'Please enter a skill name.';
             errorBox.style.display = 'block';
+            return;
+        }
+
+        if (!evidenceUrl) {
+            errorBox.textContent = 'Please provide proof of this skill.';
+            errorBox.style.display = 'block';
+            document.getElementById('editSkillEvidenceInput').focus();
             return;
         }
 
@@ -826,7 +881,9 @@ function openEditSkillModal(skillId) {
                     category: category,
                     description: desc,
                     price_per_session: price,
-                    availability: 'Flexible'
+                    availability: 'Flexible',
+                    evidence_url: evidenceUrl,
+                    evidence_notes: evidenceNotes
                 })
             });
 

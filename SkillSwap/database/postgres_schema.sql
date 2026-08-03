@@ -32,6 +32,10 @@ CREATE TABLE skills (
     location VARCHAR(100) DEFAULT 'Kathmandu',
     availability VARCHAR(100) DEFAULT 'Flexible',
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+    verification_status VARCHAR(20) DEFAULT 'Pending' CHECK (verification_status IN ('Pending', 'Approved', 'Rejected')),
+    evidence_url TEXT,
+    evidence_notes TEXT,
+    admin_feedback TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_provider ON skills(provider_id);

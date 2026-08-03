@@ -41,6 +41,7 @@ function showSection(name) {
     if (name === "overview") loadProviderEarnings();
     if (name === "users") loadUsers();
     if (name === "skills") loadSkills();
+    if (name === "verifications") loadVerifications();
     if (name === "messages") loadMessages();
     if (name === "reports") loadReports();
 }
@@ -306,6 +307,96 @@ async function toggleSkillStatus(skillId, nextStatus) {
         }
     } catch (err) {
         alert("Network error while updating skill.");
+    }
+}
+
+async function loadVerifications() {
+    const tbody = document.getElementById("verificationsTableBody");
+    tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Loading verifications…</td></tr>`;
+
+    try {
+        const data = await adminFetch("/admin/skills/verifications");
+        if (!data || !data.success) {
+            tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Could not load verifications.</td></tr>`;
+            return;
+        }
+
+        const pendingCount = (data.skills || []).filter(skill => skill.verification_status === "Pending").length;
+        document.getElementById("verificationsCount").textContent = pendingCount;
+
+        if (!data.skills || data.skills.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="loading-row">No skills pending review.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.skills.map(skill => {
+            const status = skill.verification_status || "Pending";
+            const statusColor = status === "Approved" ? "#2ecc71" : (status === "Rejected" ? "#e74c3c" : "#f39c12");
+            const evidenceLink = skill.evidence_url
+                ? `<a href="${escapeHtml(skill.evidence_url)}" target="_blank" rel="noopener noreferrer">View link</a>`
+                : "—";
+            return `
+                <tr>
+                    <td data-label="Skill">${escapeHtml(skill.skill_name || "—")}</td>
+                    <td data-label="Provider">${escapeHtml(skill.provider_name || "—")}</td>
+                    <td data-label="Evidence">${evidenceLink}</td>
+                    <td data-label="Notes">${escapeHtml(skill.evidence_notes || "—")}</td>
+                    <td data-label="Status"><span style="background:${statusColor}22; color:${statusColor}; padding:4px 10px; border-radius:20px; font-size:0.82rem; font-weight:600;">${escapeHtml(status)}</span></td>
+                    <td data-label="Action">
+                        <button class="btn-sm toggle" data-approve-skill="${skill.skill_id}">Approve</button>
+                        <button class="btn-sm danger" data-reject-skill="${skill.skill_id}">Reject</button>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+
+        tbody.querySelectorAll("[data-approve-skill]").forEach(btn => {
+            btn.addEventListener("click", () => approveSkillVerification(btn.dataset.approveSkill));
+        });
+
+        tbody.querySelectorAll("[data-reject-skill]").forEach(btn => {
+            btn.addEventListener("click", () => rejectSkillVerification(btn.dataset.rejectSkill));
+        });
+    } catch (err) {
+        console.error("Failed to load verifications:", err);
+        tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Could not connect to server.</td></tr>`;
+    }
+}
+
+async function approveSkillVerification(skillId) {
+    try {
+        const data = await adminFetch(`/admin/skills/${skillId}/verify`, {
+            method: "PUT",
+            body: JSON.stringify({ status: "Approved", feedback: "" })
+        });
+        if (data && data.success) {
+            loadVerifications();
+            loadStats();
+        } else {
+            alert(data?.message || "Failed to approve skill.");
+        }
+    } catch (err) {
+        alert("Network error while approving skill.");
+    }
+}
+
+async function rejectSkillVerification(skillId) {
+    const feedback = prompt("Optional feedback for the provider:", "");
+    if (feedback === null) return;
+
+    try {
+        const data = await adminFetch(`/admin/skills/${skillId}/verify`, {
+            method: "PUT",
+            body: JSON.stringify({ status: "Rejected", feedback })
+        });
+        if (data && data.success) {
+            loadVerifications();
+            loadStats();
+        } else {
+            alert(data?.message || "Failed to reject skill.");
+        }
+    } catch (err) {
+        alert("Network error while rejecting skill.");
     }
 }
 

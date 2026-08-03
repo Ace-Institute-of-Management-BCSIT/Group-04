@@ -82,12 +82,31 @@ async function ensureReportsTable() {
     }
 }
 
+async function ensureSkillVerificationColumns() {
+    const statements = [
+        `ALTER TABLE skills ADD COLUMN IF NOT EXISTS verification_status VARCHAR(20) DEFAULT 'Pending' CHECK (verification_status IN ('Pending', 'Approved', 'Rejected'))`,
+        `ALTER TABLE skills ADD COLUMN IF NOT EXISTS evidence_url TEXT`,
+        `ALTER TABLE skills ADD COLUMN IF NOT EXISTS evidence_notes TEXT`,
+        `ALTER TABLE skills ADD COLUMN IF NOT EXISTS admin_feedback TEXT`
+    ];
+
+    try {
+        for (const sql of statements) {
+            await db.query(sql);
+        }
+        console.log("Skill verification columns ready");
+    } catch (err) {
+        console.error("Skill verification schema update failed:", err.message);
+    }
+}
+
 function generateSessionToken() {
     return crypto.randomBytes(24).toString("hex");
 }
 
 ensureBookingSessionColumns();
 ensureReportsTable();
+ensureSkillVerificationColumns();
 
 // ====================== ENCRYPTION HELPERS ======================
 // Uses AES-256-CBC. Key must be 32 bytes (64 hex chars) in .env as ENCRYPTION_KEY.
@@ -324,14 +343,19 @@ function normalizeSkillCategory(category) {
 
 app.post("/api/users/skills", verifyToken, async (req, res) => {
     const userId = req.userId;
-    const { skill_name, skill_level, category, description, price_per_session, availability } = req.body;
+    const { skill_name, skill_level, category, description, price_per_session, availability, evidence_url, evidence_notes } = req.body;
     const finalCategory = normalizeSkillCategory(category);
+    const normalizedEvidenceUrl = typeof evidence_url === 'string' ? evidence_url.trim() : '';
+
+    if (!normalizedEvidenceUrl) {
+        return res.status(400).json({ success: false, message: "Proof of skill is required." });
+    }
 
     const sql = `
         INSERT INTO skills 
         (provider_id, skill_name, category, description, skill_level, 
-         price_per_session, availability)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+         price_per_session, availability, evidence_url, evidence_notes, verification_status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Pending')
     `;
 
     try {
@@ -342,7 +366,9 @@ app.post("/api/users/skills", verifyToken, async (req, res) => {
             description,
             skill_level || 'Intermediate',
             price_per_session || 0,
-            availability || 'Flexible'
+            availability || 'Flexible',
+            normalizedEvidenceUrl,
+            typeof evidence_notes === 'string' ? evidence_notes.trim() : null
         ]);
         return res.json({ success: true, message: "Skill added successfully!" });
     } catch (err) {
@@ -366,14 +392,21 @@ app.get("/api/users/skills", verifyToken, async (req, res) => {
 app.put("/api/users/skills/:id", verifyToken, async (req, res) => {
     const userId = req.userId;
     const skillId = req.params.id;
-    const { skill_name, skill_level, category, description, price_per_session, availability } = req.body;
+    const { skill_name, skill_level, category, description, price_per_session, availability, evidence_url, evidence_notes } = req.body;
     const finalCategory = normalizeSkillCategory(category);
+    const normalizedEvidenceUrl = typeof evidence_url === 'string' ? evidence_url.trim() : '';
+
+    if (!normalizedEvidenceUrl) {
+        return res.status(400).json({ success: false, message: "Proof of skill is required." });
+    }
 
     const sql = `
         UPDATE skills 
         SET skill_name = $1, skill_level = $2, category = $3, 
-            description = $4, price_per_session = $5, availability = $6
-        WHERE skill_id = $7 AND provider_id = $8
+            description = $4, price_per_session = $5, availability = $6,
+            evidence_url = $7, evidence_notes = $8,
+            verification_status = 'Pending', admin_feedback = NULL
+        WHERE skill_id = $9 AND provider_id = $10
         RETURNING skill_id
     `;
 
@@ -385,6 +418,8 @@ app.put("/api/users/skills/:id", verifyToken, async (req, res) => {
             description,
             price_per_session || 0,
             availability || 'Flexible',
+            normalizedEvidenceUrl,
+            typeof evidence_notes === 'string' ? evidence_notes.trim() : null,
             skillId,
             userId
         ]);
@@ -428,7 +463,7 @@ app.get("/api/users/:id/skills", async (req, res) => {
                u.location
         FROM skills s
         JOIN users u ON s.provider_id = u.user_id
-        WHERE s.provider_id = $1 AND s.status = 'active'
+        WHERE s.provider_id = $1 AND s.status = 'active' AND s.verification_status = 'Approved'
         ORDER BY s.created_at DESC
     `;
     try {
@@ -542,7 +577,7 @@ app.get("/api/skills", async (req, res) => {
                u.bio as provider_bio, u.rating, u.total_reviews, u.location
         FROM skills s
         JOIN users u ON s.provider_id = u.user_id
-        WHERE s.status = 'active'
+        WHERE s.status = 'active' AND s.verification_status = 'Approved'
         ORDER BY s.created_at DESC
     `;
 
@@ -567,7 +602,7 @@ app.get("/api/skills/random", async (req, res) => {
                u.bio as provider_bio, u.rating, u.total_reviews, u.location
         FROM skills s
         JOIN users u ON s.provider_id = u.user_id
-        WHERE s.status = 'active'
+        WHERE s.status = 'active' AND s.verification_status = 'Approved'
     `;
     const params = [];
 
@@ -942,6 +977,57 @@ app.delete("/admin/skills/:id", verifyAdminToken, async (req, res) => {
         await db.query("ROLLBACK");
         console.error("Admin Delete Skill Error:", err);
         return res.status(500).json({ success: false, message: "Failed to delete skill." });
+    }
+});
+
+app.get("/admin/skills/verifications", verifyAdminToken, async (req, res) => {
+    const sql = `
+        SELECT s.skill_id, s.skill_name, s.category, s.description, s.evidence_url, s.evidence_notes,
+               s.verification_status, s.admin_feedback, s.created_at,
+               u.full_name AS provider_name, u.email AS provider_email
+        FROM skills s
+        JOIN users u ON s.provider_id = u.user_id
+        ORDER BY
+            CASE s.verification_status
+                WHEN 'Pending' THEN 0
+                WHEN 'Rejected' THEN 1
+                WHEN 'Approved' THEN 2
+                ELSE 3
+            END,
+            s.created_at DESC
+    `;
+
+    try {
+        const { rows } = await db.query(sql);
+        return res.json({ success: true, skills: rows });
+    } catch (err) {
+        console.error("Admin Skill Verifications Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to load skill verifications" });
+    }
+});
+
+app.put("/admin/skills/:id/verify", verifyAdminToken, async (req, res) => {
+    const { id } = req.params;
+    const { status, feedback } = req.body;
+
+    if (!['Approved', 'Rejected'].includes(status)) {
+        return res.status(400).json({ success: false, message: "Status must be Approved or Rejected." });
+    }
+
+    try {
+        const { rows } = await db.query(
+            `UPDATE skills SET verification_status = $1, admin_feedback = $2 WHERE skill_id = $3 RETURNING skill_id`,
+            [status, typeof feedback === 'string' && feedback.trim() ? feedback.trim() : null, id]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Skill not found." });
+        }
+
+        return res.json({ success: true, message: "Skill verification updated." });
+    } catch (err) {
+        console.error("Admin Skill Verify Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to update skill verification" });
     }
 });
 

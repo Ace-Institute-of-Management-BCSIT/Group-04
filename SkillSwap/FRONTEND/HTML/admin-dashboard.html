@@ -22,6 +22,7 @@
                 <a href="#" class="nav-link active" data-section="overview">Overview</a>
                 <a href="#" class="nav-link" data-section="users">Users</a>
                 <a href="#" class="nav-link" data-section="skills">Skills</a>
+                <a href="#" class="nav-link" data-section="verifications">Verifications</a>
                 <a href="#" class="nav-link" data-section="messages">Messages</a>
                 <a href="#" class="nav-link" data-section="reports">Reports</a>
             </nav>
@@ -162,6 +163,36 @@
                             </thead>
                             <tbody id="skillsTableBody">
                                 <tr><td colspan="7" class="loading-row">Loading skills…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== VERIFICATIONS SECTION ===== -->
+            <section id="verifications-section" class="dashboard-section">
+                <div class="card table-card">
+                    <div class="table-card-header">
+                        <div>
+                            <h3>Skill Verifications</h3>
+                            <p class="subtext">Review provider evidence and approve or reject new skills.</p>
+                        </div>
+                        <span class="count-pill" id="verificationsCount">0</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Skill</th>
+                                    <th>Provider</th>
+                                    <th>Evidence</th>
+                                    <th>Notes</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="verificationsTableBody">
+                                <tr><td colspan="6" class="loading-row">Loading verifications…</td></tr>
                             </tbody>
                         </table>
                     </div>
