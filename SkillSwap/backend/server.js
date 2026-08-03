@@ -9,7 +9,7 @@ const { Server } = require("socket.io");
 
 const db = require("./db.js");
 const authRoutes = require("./routes/auth");
-const { sendEmail } = require("./services/emailService");
+const { sendEmail, buildSkillVerificationEmailHtml } = require("./services/emailService");
 const { verifyToken, verifyAdminToken } = require("./middleware/auth");
 
 const app = express();
@@ -1080,6 +1080,38 @@ app.put("/admin/skills/:id/verify", verifyAdminToken, async (req, res) => {
 
         if (rows.length === 0) {
             return res.status(404).json({ success: false, message: "Skill not found." });
+        }
+
+        const { rows: providerRows } = await db.query(
+            `SELECT s.skill_name, u.full_name AS provider_name, u.email AS provider_email
+             FROM skills s
+             JOIN users u ON s.provider_id = u.user_id
+             WHERE s.skill_id = $1`,
+            [id]
+        );
+
+        const skillInfo = providerRows[0];
+        if (skillInfo?.provider_email) {
+            const subject = status === "Approved"
+                ? `Your skill '${skillInfo.skill_name}' has been approved!`
+                : `Update on your skill submission: '${skillInfo.skill_name}'`;
+            const html = buildSkillVerificationEmailHtml({
+                title: status === "Approved" ? "Skill approved" : "Skill update",
+                providerName: skillInfo.provider_name,
+                skillName: skillInfo.skill_name,
+                status,
+                feedback: typeof feedback === 'string' && feedback.trim() ? feedback.trim() : null
+            });
+
+            try {
+                await sendEmail({
+                    to: skillInfo.provider_email,
+                    subject,
+                    html
+                });
+            } catch (emailErr) {
+                console.error("Skill verification email failed:", emailErr);
+            }
         }
 
         return res.json({ success: true, message: "Skill verification updated." });
