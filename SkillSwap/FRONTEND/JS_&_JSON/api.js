@@ -32,6 +32,7 @@ window.api = {
         try {
             const response = await fetch(`${API_BASE}${endpoint}`, {
                 ...options,
+                cache: 'no-store',
                 // FIX: Correctly merges default headers with any route-specific headers passed in options
                 headers: {
                     ...this.getHeaders(),
